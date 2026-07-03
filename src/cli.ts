@@ -15,9 +15,12 @@ import {
   HOOK_CONFIG,
   HOOK_EVENT,
   HOOK_COMMAND,
+  POST_TOOL_EVENT,
+  POST_TOOL_COMMAND,
   README,
 } from "./init-templates";
 import { interceptFromStdin } from "./intercept";
+import { compressOutputFromStdin } from "./compress-output";
 import { CAPABILITIES, detectRepoEnv } from "./integrations";
 import { readLedger } from "./ledger";
 import { buildReport, detectRegression } from "./report";
@@ -200,24 +203,30 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
     if (fs.existsSync(settingsFile)) {
       try {
         const settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-        const entries = settings.hooks?.[HOOK_EVENT];
-        if (Array.isArray(entries)) {
-          // Strip only our command entry, preserving any hooks the user added.
+        // Strip only harness's own command entries, preserving user-added hooks.
+        // Covers both hooks harness registers (intercept + compress-output).
+        const ourCommands = [HOOK_COMMAND, POST_TOOL_COMMAND];
+        let changed = false;
+        for (const event of [HOOK_EVENT, POST_TOOL_EVENT]) {
+          const entries = settings.hooks?.[event];
+          if (!Array.isArray(entries)) continue;
           const cleaned = entries
             .map((group: any) => ({
               ...group,
               hooks: (group.hooks ?? []).filter(
-                (h: any) => h?.command !== HOOK_COMMAND
+                (h: any) => !ourCommands.includes(h?.command)
               ),
             }))
             .filter((group: any) => (group.hooks ?? []).length > 0);
-
           if (cleaned.length > 0) {
-            settings.hooks[HOOK_EVENT] = cleaned;
+            settings.hooks[event] = cleaned;
           } else {
-            delete settings.hooks[HOOK_EVENT];
+            delete settings.hooks[event];
           }
-          if (Object.keys(settings.hooks).length === 0) {
+          changed = true;
+        }
+        if (changed) {
+          if (settings.hooks && Object.keys(settings.hooks).length === 0) {
             delete settings.hooks;
           }
           fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
@@ -333,6 +342,10 @@ function main() {
 
       case "intercept":
         interceptCommand();
+        break;
+
+      case "compress-output":
+        void compressOutputFromStdin(readStdin);
         break;
 
       default:

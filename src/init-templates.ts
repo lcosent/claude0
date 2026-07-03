@@ -50,11 +50,24 @@ review: sonnet
 export const HOOK_EVENT = "UserPromptSubmit";
 export const HOOK_COMMAND = "harness intercept";
 
+// PostToolUse compresses verbose Bash output before it reaches the model's
+// context. matcher "Bash" is an exact tool-name match; the command replaces the
+// model's view via hookSpecificOutput.updatedToolOutput (side effects already ran).
+export const POST_TOOL_EVENT = "PostToolUse";
+export const POST_TOOL_MATCHER = "Bash";
+export const POST_TOOL_COMMAND = "harness compress-output";
+
 export const HOOK_CONFIG = {
   hooks: {
     [HOOK_EVENT]: [
       {
         hooks: [{ type: "command", command: HOOK_COMMAND }],
+      },
+    ],
+    [POST_TOOL_EVENT]: [
+      {
+        matcher: POST_TOOL_MATCHER,
+        hooks: [{ type: "command", command: POST_TOOL_COMMAND }],
       },
     ],
   },

@@ -205,6 +205,7 @@ Milestone status values: `PENDING → IN_PROGRESS → PASSED / BLOCKED`.
 | M8 | Integrations layer | ✅ EXPANSION | 5 native capabilities + accelerators + `harness doctor`; connect-the-pipe intercept |
 | M9 | Docs (Mermaid) | ✅ EXPANSION | Architecture diagrams in README + docs/ARCHITECTURE.md |
 | M10 | Real LLM calls | ✅ EXPANSION | `claude` CLI subscription (no API key) + deterministic simulate stub; real tokens_out |
+| M11 | PostToolUse compress | ✅ EXPANSION | `harness compress-output` replaces Bash stdout via updatedToolOutput; ~63% reduction |
 
 ---
 

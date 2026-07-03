@@ -8,10 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- PostToolUse hook to compress real user Bash output (M11)
 - terse-output live net-delta + auto-disable (M12)
 - Cross-project policy sync `harness policy pull/push` (M13)
 - Continuous-learning pipeline: ledger → rule/skill proposals (M14)
+
+## [0.4.0] - 2026-07-03
+
+### Added
+- **M11: PostToolUse compression of real Bash output.** `harness init` now also
+  registers a `PostToolUse` hook (matcher `Bash`) calling the new
+  `harness compress-output` command. It reads the tool-result JSON from stdin,
+  compresses `tool_response.stdout` with the M8 native compressor, and returns a
+  `hookSpecificOutput.updatedToolOutput` envelope that **replaces what Claude
+  sees** (the command already ran; only the model's view shrinks). ~63% reduction
+  on noisy build logs. `stderr`/flags preserved; non-Bash tools pass through.
+- `uninstall` now strips both harness hooks (intercept + compress-output) while
+  preserving any user-added hooks on the same events.
 
 ## [0.3.0] - 2026-07-03
 

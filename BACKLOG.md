@@ -29,16 +29,12 @@ condition for the item (no "looks good").
 
 ## M11 — PostToolUse compression of real Bash output
 
-- **status:** TODO
+- **status:** DONE — `harness compress-output` reads PostToolUse JSON, compresses
+  `tool_response.stdout` via M8 native, emits `updatedToolOutput` (replaces the
+  model's view; side effects already ran). init registers a Bash-matched
+  PostToolUse hook; uninstall strips both harness hooks, preserves user hooks.
+  m11-test 7/7, 62.7% reduction; e2e envelope verified.
 - **blocked-by:** —
-- **why:** M8 `output-compress` only touches the internal loop. Real user Bash
-  output arrives via a PostToolUse hook harness doesn't register.
-- **build:** `harness init` also registers a `PostToolUse` hook (matcher `Bash`)
-  calling `harness compress-output`; implement that command to read tool output
-  from stdin and return the compressed form.
-- **success:** `npm run test:m11` passes — a PostToolUse payload piped to
-  `harness compress-output` returns ≥40% smaller output on a noisy fixture; init
-  writes a valid PostToolUse hook; uninstall removes it.
 
 ## M12 — terse-output live auto-disable
 
