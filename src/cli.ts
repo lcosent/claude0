@@ -9,7 +9,14 @@ import {
   policyPath,
   claudeSettingsPath,
 } from "./paths";
-import { SAMPLE_RULES, DEFAULT_POLICY, HOOK_CONFIG, README } from "./init-templates";
+import {
+  SAMPLE_RULES,
+  DEFAULT_POLICY,
+  HOOK_CONFIG,
+  HOOK_EVENT,
+  HOOK_COMMAND,
+  README,
+} from "./init-templates";
 import { readLedger } from "./ledger";
 import { buildReport, detectRegression } from "./report";
 import { compile, fullContextBundle, tokenCount } from "./compiler";
@@ -191,8 +198,23 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
     if (fs.existsSync(settingsFile)) {
       try {
         const settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-        if (settings.hooks && settings.hooks["user-prompt-submit"] === "harness intercept") {
-          delete settings.hooks["user-prompt-submit"];
+        const entries = settings.hooks?.[HOOK_EVENT];
+        if (Array.isArray(entries)) {
+          // Strip only our command entry, preserving any hooks the user added.
+          const cleaned = entries
+            .map((group: any) => ({
+              ...group,
+              hooks: (group.hooks ?? []).filter(
+                (h: any) => h?.command !== HOOK_COMMAND
+              ),
+            }))
+            .filter((group: any) => (group.hooks ?? []).length > 0);
+
+          if (cleaned.length > 0) {
+            settings.hooks[HOOK_EVENT] = cleaned;
+          } else {
+            delete settings.hooks[HOOK_EVENT];
+          }
           if (Object.keys(settings.hooks).length === 0) {
             delete settings.hooks;
           }
@@ -217,7 +239,7 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
 
 function interceptCommand() {
   console.log("Harness intercept hook (not yet implemented)");
-  console.log("This will be called by Claude Code on user-prompt-submit");
+  console.log(`This will be called by Claude Code on ${HOOK_EVENT}`);
   process.exit(0);
 }
 

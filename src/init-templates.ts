@@ -44,9 +44,19 @@ debate: sonnet
 review: sonnet
 `;
 
+// Claude Code hook format: event keys are PascalCase and each maps to an array
+// of matcher-objects, each holding a "hooks" array of command entries.
+// UserPromptSubmit takes no matcher — it fires on every prompt submission.
+export const HOOK_EVENT = "UserPromptSubmit";
+export const HOOK_COMMAND = "harness intercept";
+
 export const HOOK_CONFIG = {
   hooks: {
-    "user-prompt-submit": "harness intercept",
+    [HOOK_EVENT]: [
+      {
+        hooks: [{ type: "command", command: HOOK_COMMAND }],
+      },
+    ],
   },
 };
 
