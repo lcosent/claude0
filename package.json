@@ -1,0 +1,41 @@
+{
+  "name": "harness",
+  "version": "0.1.0",
+  "description": "Deterministic orchestration spine for Claude Code",
+  "main": "dist/cli.js",
+  "bin": {
+    "harness": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run test:m1 && npm run test:m2 && npm run test:m3 && npm run test:m5 && npm run test:m6 && npm run test:m7",
+    "test:m0": "tsx src/run.ts hello && tsx src/run.ts always-fail || true",
+    "test:m1": "tsx src/m1-test.ts",
+    "test:m2": "tsx src/m2-test.ts",
+    "test:m3": "tsx src/m3-test.ts",
+    "test:m5": "tsx src/m5-test.ts",
+    "test:m6": "tsx src/m6-test.ts",
+    "test:m7": "tsx src/m7-test.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "claude",
+    "code",
+    "ai",
+    "orchestration",
+    "tokens",
+    "optimization"
+  ],
+  "author": "Luca",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "gpt-tokenizer": "^3.4.0",
+    "tsx": "^4.22.5",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0"
+  }
+}
