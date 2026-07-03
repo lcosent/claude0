@@ -79,6 +79,16 @@ condition for the item (no "looks good").
 
 ---
 
+## M15 — Live-path validation (full execution, not just simulate)
+
+- **status:** DONE — opt-in live gate in `src/m10-test.ts`. Demonstrated BOTH
+  states: offline `npm run test:m10` → 7/7, live gate SKIPPED (green); `HARNESS_LIVE=1`
+  → 8/8 with a REAL subscription call returning `source=claude-cli tokens_out=97`.
+  Also validated `callModel` directly against the live CLI (real envelope: `result`
+  string + `usage.output_tokens` — matches the parser). This is full execution,
+  not simulate-only.
+- **blocked-by:** —
+
 ## Done
 
 - M0-M7 — core spine (autonomy, compiler, router, contracts, loop, learning, dashboard, cross-project).
@@ -89,6 +99,7 @@ condition for the item (no "looks good").
 - M12 — terse-output auto-disable, observable in `harness doctor`.
 - M13 — cross-project policy sync (`harness policy pull/push`).
 - M14 — continuous-learning pipeline (`harness learn`, proposal-only).
+- M15 — live-path validation gate (real subscription call, opt-in via HARNESS_LIVE=1).
 
 **Backlog drained** — no runnable TODO remains. Add new items above the Done
 section for `/loop` to pick up.

@@ -2,8 +2,13 @@ import { callModel, liveAvailable } from "./llm";
 import { encode } from "gpt-tokenizer";
 
 // M10 — real LLM calls via the claude CLI subscription, with a deterministic
-// offline stub. This test forces simulate mode so it is reproducible and needs
-// no subscription/network (CI stays green).
+// offline stub. Deterministic checks force simulate mode so they're reproducible
+// and need no subscription/network (CI stays green). M15 adds an OPT-IN live gate
+// (HARNESS_LIVE=1) that makes one real subscription call to validate full
+// execution — skipped (not failed) offline or without the flag.
+
+// Capture the live opt-in BEFORE we force simulate for the deterministic block.
+const LIVE_REQUESTED = process.env.HARNESS_LIVE === "1";
 
 process.env.HARNESS_SIMULATE = "1";
 
@@ -49,6 +54,24 @@ function main() {
   process.env.HARNESS_SIMULATE = "1";
   check("liveAvailable(): real probe returns a boolean (live path wired)", typeof liveProbe === "boolean");
   console.log(`  note: claude CLI ${liveProbe ? "IS" : "is NOT"} available on this machine — live calls ${liveProbe ? "would run on subscription" : "fall back to simulate"}`);
+
+  // 7. M15 live gate (opt-in, full execution). Only runs with HARNESS_LIVE=1 AND
+  //    a real claude CLI present — makes ONE real haiku call on the subscription.
+  //    Otherwise SKIP (not FAIL) so offline/CI stays green. Cost-guarded to 1 call.
+  if (LIVE_REQUESTED && liveProbe) {
+    delete process.env.HARNESS_SIMULATE; // exercise the REAL path
+    const live = callModel("Reply with exactly: DONE", "haiku");
+    process.env.HARNESS_SIMULATE = "1";
+    check(
+      "LIVE: real subscription call → source=claude-cli, tokens_out>0",
+      live.source === "claude-cli" && live.tokens_out > 0,
+      `source=${live.source} tokens_out=${live.tokens_out}`
+    );
+  } else {
+    console.log(
+      `SKIP  LIVE gate (${LIVE_REQUESTED ? "claude CLI not available" : "set HARNESS_LIVE=1 to run a real call"})`
+    );
+  }
 
   console.log("---");
   console.log(`M10 RESULT: ${fail === 0 ? "PASS" : "FAIL"}  (${pass} passed, ${fail} failed)`);

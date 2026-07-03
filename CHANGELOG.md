@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Backlog drained (M0–M14 shipped). New milestones will be added as they're scoped._
+_Backlog drained (M0–M15 shipped). New milestones will be added as they're scoped._
+
+## [0.7.1] - 2026-07-03
+
+### Added
+- **M15: live-path validation gate.** `src/m10-test.ts` gains an opt-in gate that,
+  under `HARNESS_LIVE=1` with the `claude` CLI present, makes ONE real subscription
+  call and asserts `source==="claude-cli"` and `tokens_out>0` — validating M10's
+  live path by full execution, not just simulate. Offline or without the flag the
+  gate is SKIPPED (not failed), so `npm test`/CI stays green. Verified both states:
+  offline 7/7 (skipped), live 8/8 (real call, tokens_out=97).
 
 ## [0.7.0] - 2026-07-03
 

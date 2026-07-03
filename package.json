@@ -1,6 +1,6 @@
 {
   "name": "harness",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Save 60-70% of Claude Code input tokens by compiling minimal context instead of full CLAUDE.md",
   "main": "dist/cli.js",
   "bin": {
