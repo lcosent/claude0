@@ -56,6 +56,26 @@ export function shouldDisable(name: string, repoRoot: string): boolean {
 }
 
 /**
+ * Resolve a capability's effective availability for THIS repo, overlaying
+ * auto-disable on top of its own availability(). This is the single source of
+ * truth both `harness doctor` and runCapability use — so a net-negative
+ * capability shows "disabled" everywhere, not just in the run path.
+ */
+export function resolveAvailability(cap: Capability, repoRoot: string, env: RepoEnv) {
+  const base = cap.availability(env);
+  // A capability that isn't even active here can't be "disabled" — report as-is.
+  if (base.status !== "native" && base.status !== "accelerated") return base;
+  if (shouldDisable(cap.name, repoRoot)) {
+    return {
+      status: "disabled" as const,
+      detail: "auto-disabled (net-negative token delta over recent runs)",
+      advisory: base.advisory,
+    };
+  }
+  return base;
+}
+
+/**
  * Run a capability by name against `input`, returning its result. Respects
  * auto-disable (returns a passthrough result when disabled). The caller folds
  * the returned CapabilityResult into the ledger entry's `capabilities` array.

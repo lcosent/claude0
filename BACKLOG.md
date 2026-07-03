@@ -38,8 +38,12 @@ condition for the item (no "looks good").
 
 ## M12 — terse-output live auto-disable
 
-- **status:** TODO
-- **blocked-by:** M10
+- **status:** DONE — `resolveAvailability` overlays disable state so `harness
+  doctor` shows `disabled` (fixed the M8 gap where doctor ignored shouldDisable);
+  terse wired through `runCapability` in the loop. m12-test 6/6; doctor live-verified
+  to show `✗ terse-output auto-disabled` on net-negative history. True output-delta
+  A/B measurement noted as follow-up (needs no-terse baseline).
+- **blocked-by:** M10 (DONE)
 - **why:** terse shapes model *output*; its true net delta needs real calls to
   measure. Auto-disable was deferred from M8.
 - **build:** Log terse's real output-token delta once M10 lands; feed it into the

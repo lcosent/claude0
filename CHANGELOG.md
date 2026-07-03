@@ -8,9 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- terse-output live net-delta + auto-disable (M12)
 - Cross-project policy sync `harness policy pull/push` (M13)
 - Continuous-learning pipeline: ledger → rule/skill proposals (M14)
+
+## [0.5.0] - 2026-07-03
+
+### Added
+- **M12: terse-output auto-disable, observable in `harness doctor`.** New
+  `resolveAvailability()` overlays the auto-disable decision on top of a
+  capability's own availability — the single source of truth doctor and
+  runCapability now share. This closes the M8 gap where doctor reported "native"
+  for a capability the run path was already disabling. When terse-output's net
+  token delta goes negative over the rolling window, doctor shows
+  `✗ terse-output auto-disabled`. terse is now applied via `runCapability` in the
+  build step (respects disable). Note: terse's true payoff is output-side; live
+  A/B output measurement is a follow-up, but the disable mechanism is proven and
+  observable now.
 
 ## [0.4.0] - 2026-07-03
 

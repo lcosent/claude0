@@ -21,7 +21,7 @@ import {
 } from "./init-templates";
 import { interceptFromStdin } from "./intercept";
 import { compressOutputFromStdin } from "./compress-output";
-import { CAPABILITIES, detectRepoEnv } from "./integrations";
+import { CAPABILITIES, detectRepoEnv, resolveAvailability } from "./integrations";
 import { readLedger } from "./ledger";
 import { buildReport, detectRegression } from "./report";
 import { compile, fullContextBundle, tokenCount } from "./compiler";
@@ -275,7 +275,7 @@ function doctorCommand() {
   console.log("Harness Integrations");
   console.log("─".repeat(52));
   for (const cap of CAPABILITIES) {
-    const a = cap.availability(env);
+    const a = resolveAvailability(cap, root, env);
     const mark =
       a.status === "accelerated" ? "✓" : a.status === "native" ? "✓" : a.status === "inactive" ? "○" : "✗";
     let line = `${mark} ${cap.name.padEnd(16)} ${a.detail}`;

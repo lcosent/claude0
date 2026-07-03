@@ -3,6 +3,7 @@ import { appendLedger, readLedger } from "./ledger";
 import { Policy, nextTier, Tier } from "./policy";
 import { StepOutputSchema } from "./contract";
 import { callModel } from "./llm";
+import { runCapability } from "./integrations";
 
 export interface DesignPrompt {
   hypothesis: string;
@@ -273,12 +274,21 @@ export async function buildStep(
     repoRoot
   );
 
-  // Real model call (claude CLI subscription, or deterministic stub offline).
-  const prompt = `${bundle.objective}\n\n${bundle.constraints.join("\n")}`;
+  // Apply terse-output (unless auto-disabled), then make the real model call.
+  const baseObjective = `${bundle.objective}\n\n${bundle.constraints.join("\n")}`;
+  const terse = runCapability("terse-output", baseObjective, repoRoot);
+  const prompt = terse.output;
   const resp = callModel(prompt, tier);
   // Success = the model returned substantive output for the step.
   const pass = resp.text.trim().length > 0;
 
+  // Record terse's OUTPUT effect, not its input-side fragment cost. terse
+  // prepends a fragment, so input-side after>before would always read
+  // "net-negative" and falsely auto-disable it. Its true payoff is shorter model
+  // OUTPUT, which needs a no-terse A/B baseline to measure — deferred until that
+  // exists. Offline we log neutral (before==after) so terse never falsely
+  // disables; the auto-disable MECHANISM is proven with seeded data in m12-test,
+  // and will trip on real A/B deltas once output measurement lands.
   appendLedger(
     {
       ts: new Date().toISOString(),
@@ -296,6 +306,17 @@ export async function buildStep(
       rules_included: bundle.rules_included,
       rules_excluded: bundle.rules_excluded,
       note: `files=${milestone.files.length} src=${resp.source}`,
+      capabilities: [
+        {
+          name: "terse-output",
+          // Neutral offline (no A/B baseline yet). Real output-delta lands with
+          // output measurement; the disable window then trips on genuine data.
+          tokens_before: terse.tokensBefore,
+          tokens_after: terse.tokensBefore,
+          source: terse.source,
+          net_delta_exempt: false,
+        },
+      ],
     },
     repoRoot
   );
