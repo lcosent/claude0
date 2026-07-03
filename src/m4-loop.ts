@@ -351,11 +351,16 @@ export async function verifyStep(
       repoRoot
     );
 
-    // Real reviewer call. Verification asks the model to end with PASS/FAIL;
-    // offline stub echoes the prompt (treated as PASS — substantive output).
-    const prompt = `${bundle.objective}\n\nImplementation:\n${implementation}\n\nRespond PASS or FAIL with one reason.`;
+    // Real reviewer call. Ask for a structured verdict on its OWN line so we
+    // parse the decision, not incidental prose (a real review that says "would
+    // FAIL if..." must not trip a naive substring match). Offline stub echoes
+    // the prompt (no VERDICT line) → substantive output treated as PASS.
+    const prompt = `${bundle.objective}\n\nImplementation:\n${implementation}\n\nStart your reply with a line "VERDICT: PASS" or "VERDICT: FAIL", then one reason.`;
     const resp = callModel(prompt, "sonnet");
-    const pass = !/\bFAIL\b/i.test(resp.text) && resp.text.trim().length > 0;
+    const verdict = resp.text.match(/VERDICT:\s*(PASS|FAIL)/i);
+    const pass = verdict
+      ? verdict[1].toUpperCase() === "PASS" // real model: trust its structured verdict
+      : resp.text.trim().length > 0; // stub/no-verdict: substantive output = pass
 
     appendLedger(
       {

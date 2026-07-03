@@ -87,6 +87,14 @@ condition for the item (no "looks good").
   Also validated `callModel` directly against the live CLI (real envelope: `result`
   string + `usage.output_tokens` — matches the parser). This is full execution,
   not simulate-only.
+- **live M4 loop finding:** ran the full DESIGN→PLAN→GATE→BUILD→VERIFY chain LIVE
+  (6569 real tokens). It executes correctly end-to-end. Fixed a brittle verify gate
+  (`/\bFAIL\b/` matched incidental prose) → now parses a structured `VERDICT: PASS|FAIL`
+  line. Confirmed the loop's "0/2 completion" on live runs is CORRECT behavior, not a
+  bug: two independent santa-method reviewers give genuine verdicts (security correctly
+  FAILs unsanitized greeting code; correctness/security verdicts vary with the code).
+  A strict two-reviewer gate is *supposed* to be hard to pass — forcing green would game
+  the criterion. Verify gate hardening shipped; offline M1-M14 stay green.
 - **blocked-by:** —
 
 ## Done

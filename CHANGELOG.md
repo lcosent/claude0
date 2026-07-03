@@ -19,6 +19,15 @@ _Backlog drained (M0–M15 shipped). New milestones will be added as they're sco
   gate is SKIPPED (not failed), so `npm test`/CI stays green. Verified both states:
   offline 7/7 (skipped), live 8/8 (real call, tokens_out=97).
 
+### Fixed
+- **M4 verify gate robustness.** The reviewer pass/fail check matched a bare
+  `FAIL` substring, so a real review saying "would FAIL if..." mis-parsed. Now the
+  reviewer is asked for a structured `VERDICT: PASS|FAIL` line and only that is
+  parsed. Validated by running the full DESIGN→PLAN→GATE→BUILD→VERIFY loop live
+  (6569 real tokens): the loop executes end-to-end and its two-reviewer
+  santa-method gate gives genuine verdicts (e.g. security correctly fails an
+  unsanitized greeting). A strict gate that's hard to pass is by design.
+
 ## [0.7.0] - 2026-07-03
 
 ### Added
