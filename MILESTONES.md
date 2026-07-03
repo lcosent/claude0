@@ -204,6 +204,7 @@ Milestone status values: `PENDING → IN_PROGRESS → PASSED / BLOCKED`.
 | M7 | Cross-project policy | ✅ EXPANSION | The durable, portable artifact |
 | M8 | Integrations layer | ✅ EXPANSION | 5 native capabilities + accelerators + `harness doctor`; connect-the-pipe intercept |
 | M9 | Docs (Mermaid) | ✅ EXPANSION | Architecture diagrams in README + docs/ARCHITECTURE.md |
+| M10 | Real LLM calls | ✅ EXPANSION | `claude` CLI subscription (no API key) + deterministic simulate stub; real tokens_out |
 
 ---
 

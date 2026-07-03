@@ -1,3 +1,8 @@
+// M4 drives the real loop, which now calls the model via src/llm.ts. Force the
+// deterministic offline stub so this milestone test stays reproducible and
+// needs no subscription/network.
+process.env.HARNESS_SIMULATE = "1";
+
 import { runM4Loop } from "./m4-loop";
 import { readLedger } from "./ledger";
 

@@ -10,18 +10,22 @@ condition for the item (no "looks good").
 
 ---
 
-## M10 — Real LLM calls (replace the simulated loop)
+## M10 — Real LLM calls (via claude CLI subscription, no API key)
 
-- **status:** TODO
+- **status:** DONE — `src/llm.ts callModel` shells to `claude -p` on subscription;
+  deterministic offline stub under `HARNESS_SIMULATE=1`; m4-loop logs real
+  `tokens_out` (not hardcoded). m10-test 7/7, claude CLI 2.1.199 detected live.
 - **blocked-by:** —
 - **why:** `m4-loop.ts` decides pass/fail with `Math.random()` and hardcodes
   `tokens_out`. Every downstream claim (net-delta, auto-disable) needs real traffic.
-- **build:** Add an Anthropic client (env `ANTHROPIC_API_KEY`); route `buildStep`/
-  `verifyStep` through it via the ROUTER tier; keep a `--simulate` flag so tests run
-  offline. Record real `tokens_out` in the ledger.
-- **success:** `npm run test:m10` passes — a live call path exists and, when
-  `HARNESS_SIMULATE=1`, the suite runs deterministically offline (CI stays green
-  with no key). Real `tokens_out` logged (not hardcoded) when a key is present.
+- **build:** `src/llm.ts` — `callModel(prompt, tier)` shells out to the `claude`
+  CLI in headless mode (`claude -p --model <haiku|sonnet|opus> --output-format json`),
+  running on the user's subscription (NOT a paid API key). `HARNESS_SIMULATE=1` or a
+  missing `claude` binary → deterministic offline stub. Route `buildStep`/`verifyStep`
+  through it; log real `tokens_out`.
+- **success:** `npm run test:m10` passes — simulate mode is deterministic and offline
+  (CI green with no subscription); the live path is present and returns real
+  `tokens_out` when `claude` is available.
 
 ## M11 — PostToolUse compression of real Bash output
 

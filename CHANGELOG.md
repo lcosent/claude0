@@ -8,11 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Real LLM API calls (loop currently simulated)
-- PostToolUse hook to compress real user Bash output
-- terse-output live net-delta + auto-disable (needs real model output)
-- M9 docs: Mermaid architecture/data-flow diagrams
-- Cross-project policy sync (`harness policy pull/push`)
+- PostToolUse hook to compress real user Bash output (M11)
+- terse-output live net-delta + auto-disable (M12)
+- Cross-project policy sync `harness policy pull/push` (M13)
+- Continuous-learning pipeline: ledger → rule/skill proposals (M14)
+
+## [0.3.0] - 2026-07-03
+
+### Added
+- **M10: Real LLM calls via the `claude` CLI subscription** (no API key). New
+  `src/llm.ts` `callModel(prompt, tier)` shells out to `claude -p --model
+  <haiku|sonnet|opus> --output-format json` on the user's Claude Code
+  subscription. `HARNESS_SIMULATE=1` or a missing `claude` binary → a
+  deterministic offline stub (no Math.random), so tests/CI run reproducibly with
+  no subscription or network. `m4-loop.ts` build/verify steps now call the model
+  and log the **real** `tokens_out` (previously hardcoded 800/200/etc.). A failed
+  live call degrades to the stub rather than hard-failing the loop.
+
+### Changed
+- `harness test` runs milestone tests in simulate mode; the loop's pass/fail is
+  now driven by model output, not `Math.random()`.
 
 ## [0.2.0] - 2026-07-03
 

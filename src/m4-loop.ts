@@ -2,6 +2,7 @@ import { compile, tokenCount, fullContextBundle } from "./compiler";
 import { appendLedger, readLedger } from "./ledger";
 import { Policy, nextTier, Tier } from "./policy";
 import { StepOutputSchema } from "./contract";
+import { callModel } from "./llm";
 
 export interface DesignPrompt {
   hypothesis: string;
@@ -272,7 +273,11 @@ export async function buildStep(
     repoRoot
   );
 
-  const pass = Math.random() > 0.1; // 90% success rate for simulation
+  // Real model call (claude CLI subscription, or deterministic stub offline).
+  const prompt = `${bundle.objective}\n\n${bundle.constraints.join("\n")}`;
+  const resp = callModel(prompt, tier);
+  // Success = the model returned substantive output for the step.
+  const pass = resp.text.trim().length > 0;
 
   appendLedger(
     {
@@ -282,7 +287,7 @@ export async function buildStep(
       attempt: 1,
       tier,
       tokens_in: tokenCount(bundle),
-      tokens_out: 800,
+      tokens_out: resp.tokens_out,
       baseline_tokens: tokenCount(fullContextBundle(bundle.objective, repoRoot)),
       pass,
       metric: pass ? 1 : 0,
@@ -290,14 +295,14 @@ export async function buildStep(
       retries: 0,
       rules_included: bundle.rules_included,
       rules_excluded: bundle.rules_excluded,
-      note: `files=${milestone.files.length}`,
+      note: `files=${milestone.files.length} src=${resp.source}`,
     },
     repoRoot
   );
 
   return {
     success: pass,
-    output: pass ? "Implementation complete" : "Build failed",
+    output: pass ? resp.text : "Build failed",
   };
 }
 
@@ -325,7 +330,11 @@ export async function verifyStep(
       repoRoot
     );
 
-    const pass = Math.random() > 0.2; // 80% pass rate per reviewer
+    // Real reviewer call. Verification asks the model to end with PASS/FAIL;
+    // offline stub echoes the prompt (treated as PASS — substantive output).
+    const prompt = `${bundle.objective}\n\nImplementation:\n${implementation}\n\nRespond PASS or FAIL with one reason.`;
+    const resp = callModel(prompt, "sonnet");
+    const pass = !/\bFAIL\b/i.test(resp.text) && resp.text.trim().length > 0;
 
     appendLedger(
       {
@@ -335,7 +344,7 @@ export async function verifyStep(
         attempt: 1,
         tier: "sonnet",
         tokens_in: tokenCount(bundle),
-        tokens_out: 200,
+        tokens_out: resp.tokens_out,
         baseline_tokens: tokenCount(
           fullContextBundle(bundle.objective, repoRoot)
         ),
@@ -345,7 +354,7 @@ export async function verifyStep(
         retries: 0,
         rules_included: bundle.rules_included,
         rules_excluded: bundle.rules_excluded,
-        note: `reviewer=${reviewer.name}`,
+        note: `reviewer=${reviewer.name} src=${resp.source}`,
       },
       repoRoot
     );

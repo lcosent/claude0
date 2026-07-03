@@ -1,6 +1,6 @@
 {
   "name": "harness",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Save 60-70% of Claude Code input tokens by compiling minimal context instead of full CLAUDE.md",
   "main": "dist/cli.js",
   "bin": {
@@ -16,7 +16,7 @@
   "homepage": "https://github.com/lcosent/harness#readme",
   "scripts": {
     "build": "tsc",
-    "test": "npm run test:m1 && npm run test:m2 && npm run test:m3 && npm run test:m4 && npm run test:m5 && npm run test:m6 && npm run test:m7 && npm run test:m8",
+    "test": "npm run test:m1 && npm run test:m2 && npm run test:m3 && npm run test:m4 && npm run test:m5 && npm run test:m6 && npm run test:m7 && npm run test:m8 && npm run test:m10",
     "test:m0": "tsx src/run.ts hello && tsx src/run.ts always-fail || true",
     "test:m1": "tsx src/m1-test.ts",
     "test:m2": "tsx src/m2-test.ts",
@@ -26,6 +26,7 @@
     "test:m6": "tsx src/m6-test.ts",
     "test:m7": "tsx src/m7-test.ts",
     "test:m8": "tsx src/m8-test.ts",
+    "test:m10": "tsx src/m10-test.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
