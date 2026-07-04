@@ -31,15 +31,17 @@ Write commit messages that explain why, not what. Use conventional commit format
 };
 
 export const DEFAULT_POLICY = `# Zipline routing policy
-# Maps step types to Anthropic model tiers (haiku/sonnet/opus)
-# Lower tiers are cheaper; escalation happens on contract validation failure
+# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)
+# Lower tiers are cheaper; escalation happens on contract validation failure.
+# fable is the architect tier (~2x opus) — assign it only to planning/review,
+# never to mechanical work. Escalation never promotes a step into fable.
 
 context-compile: haiku
 structured-extract: haiku
 unit-test-write: sonnet
 verify-output: sonnet
 implement-small-fn: sonnet
-design-synthesis: opus
+design-synthesis: fable
 debate: sonnet
 review: sonnet
 `;

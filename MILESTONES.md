@@ -213,6 +213,10 @@ Milestone status values: `PENDING → IN_PROGRESS → PASSED / BLOCKED`.
 | M17 | terse A/B output-delta | ✅ v1 GATE | Real no-terse baseline measures OUTPUT delta; feeds auto-disable |
 | M18 | Optional gstack | ✅ v1 GATE | Detected, never invoked; honest degradation in `zipline doctor` |
 | M19 | Hook performance | ✅ v1 GATE | Hard 150ms budget; intercept ~0.5ms, compress ~3ms/4000-line log |
+| M20 | Fable tier | ✅ FABLE-ERA | Architect tier (~2× opus) off the escalation ladder; assigned by policy only |
+| M21 | Effort axis | ✅ FABLE-ERA | `tier@effort` → `claude --effort`; xhigh/max opt-in only; optional ledger field |
+| M22 | Cost-regression demotion | ✅ FABLE-ERA | Shared `router.ts`; demote on overthinking; effort before tier; reliability wins |
+| M23 | Budget breaker | ✅ FABLE-ERA | `ZIPLINE_MAX_TOKENS` halts runaway loops; schema-safe STUCK + budget-halt note |
 
 ---
 
@@ -240,3 +244,52 @@ Milestone status values: `PENDING → IN_PROGRESS → PASSED / BLOCKED`.
 - **Success criterion:** Mermaid fences valid and render on GitHub; README documents
   the integrations layer and `zipline doctor`.
 - **Gate:** none (leaf).
+
+---
+
+## M20–M23 — Fable-era routing
+
+Prompted by Fable 5 becoming a first-class, expensive default. The router could
+not previously express Fable, reasoning effort, cost-based demotion, or a spend
+ceiling. All four are backward-compatible (no ledger schema bump; old
+`policy.yaml` still parses; budget off by default).
+
+### M20 — Fable tier
+
+- **Goal:** Let the router reason about Fable without ever escalating into it.
+- **Build:** `fable` added to `Tier`, `TIER_COST` (2×), `TIER_MODEL`; new
+  `ALL_TIERS` carries it for cost/reporting while `TIER_ORDER` (the escalation
+  ladder) stays `haiku/sonnet/opus`. `nextTier` caps at opus and returns opus for
+  off-ladder input. Design-synthesis converge + `DEFAULT_POLICY` default to fable.
+- **Success criterion:** `test:m20` — fable priced above opus; escalation from any
+  tier provably never reaches fable; policy can assign fable; `callModel` routes it.
+
+### M21 — Reasoning-effort axis
+
+- **Goal:** Add effort as a second cost axis; never default to a furnace.
+- **Build:** `Effort` + `DEFAULT_EFFORT_BY_TIER` (low/medium/high; never
+  xhigh/max). `PolicyEntry = Tier | {tier, effort}`; `parsePolicy` accepts
+  `tier@effort` and bare tiers round-trip byte-identically. `callModel(prompt,
+  tier, effort)` → `claude --effort`. Optional `effort` ledger field (additive).
+- **Success criterion:** `test:m21` — both policy forms round-trip; default map
+  correct; xhigh never auto-assigned; effort persists; pre-M21 entries still parse.
+
+### M22 — Cost-regression demotion
+
+- **Goal:** Demote a tier that passes but overthinks, not just one that fails.
+- **Build:** `src/router.ts` `assessRoute` — extracted from the M2 sim (now a
+  shared decision). Fail-rate escalation unchanged; new overthinking trigger fires
+  on ballooning `tokens_out` at healthy pass-rate, cutting **effort before tier**.
+  Reliability wins ties.
+- **Success criterion:** `test:m22` — overthinking cuts effort first then tier;
+  fable steps to opus; healthy holds; failing+expensive still escalates; M2 intact.
+
+### M23 — Budget circuit-breaker
+
+- **Goal:** Stop a runaway autonomous loop before it burns a fortune.
+- **Build:** `src/budget.ts` (`ZIPLINE_MAX_TOKENS`); `runMilestone`/`runM4Loop`
+  halt before the next expensive step once cumulative tokens reach the cap. Halt
+  persists as schema-safe `STUCK` + `budget-halt:` note (internal `LoopOutcome`
+  `"BUDGET"` never written). `zipline report` counts budget halts.
+- **Success criterion:** `test:m23` — small cap halts before maxAttempts and stops
+  within one step of the cap; report counts it; no cap = zero behavior change.

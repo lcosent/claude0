@@ -15,7 +15,7 @@ function rng(seed: number) {
 // is testing. Three repos, each with a different mix of step kinds.
 interface StepKind {
   kind: string;
-  passProb: Record<Tier, number>;
+  passProb: Record<string, number>; // escalation-ladder tiers only (haiku/sonnet/opus)
 }
 
 const KINDS: StepKind[] = [

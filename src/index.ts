@@ -14,8 +14,31 @@ export type { Rule, Bundle } from "./compiler";
 export { loadRules, compile, fullContextBundle, tokenCount } from "./compiler";
 
 // ── Policy: model-tier routing ───────────────────────────────────────────
-export type { Tier, Policy } from "./policy";
-export { TIER_ORDER, TIER_COST, nextTier } from "./policy";
+export type { Tier, Effort, PolicyEntry, Policy } from "./policy";
+export {
+  TIER_ORDER,
+  ALL_TIERS,
+  TIER_COST,
+  nextTier,
+  prevTier,
+  EFFORT_ORDER,
+  lowerEffort,
+  DEFAULT_EFFORT_BY_TIER,
+  effortForTier,
+  entryTier,
+  entryEffort,
+  sameEntry,
+} from "./policy";
+
+// ── Router: shared routing decision (reliability + cost-regression) ───────
+export type { RouteState, WindowStats, RouteAction } from "./router";
+export {
+  assessRoute,
+  DEMOTE_WINDOW,
+  DEMOTE_FAILRATE,
+  HEALTHY_FAILRATE,
+  OVERTHINK_RATIO,
+} from "./router";
 
 // ── Policy sync: portable cross-project policy artifact ───────────────────
 export type { PolicyMap, SyncResult } from "./policy-sync";
@@ -62,6 +85,14 @@ export {
   terseABToLogEntry,
 } from "./integrations";
 export type { TerseABResult } from "./integrations";
+
+// ── Budget: the autonomous-loop spend circuit-breaker ─────────────────────
+export {
+  budgetLimitTokens,
+  budgetHaltNote,
+  isBudgetHalt,
+  BUDGET_HALT_PREFIX,
+} from "./budget";
 
 // ── Paths: zipline-root discovery ────────────────────────────────────────
 export { findZiplineRoot, requireZiplineRoot } from "./paths";

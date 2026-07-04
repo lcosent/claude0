@@ -12,7 +12,7 @@ function rng(seed: number) {
 
 interface StepSpec {
   step: string;
-  passProb: Record<Tier, number>;
+  passProb: Record<string, number>; // escalation-ladder tiers only (haiku/sonnet/opus)
 }
 
 const STEPS: StepSpec[] = [

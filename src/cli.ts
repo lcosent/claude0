@@ -131,12 +131,16 @@ function reportCommand(opts: { global?: boolean } = {}) {
   );
   console.log(`Escalations:      ${report.escalationCount}`);
   console.log(`Stuck:            ${report.stuckCount}`);
+  if (report.budgetHalts > 0)
+    console.log(`Budget halts:     ${report.budgetHalts}`);
   console.log(`Token savings:    ${totalSavings.toFixed(1)}%`);
   console.log(
     `  Baseline:       ${report.totalBaselineTokens.toLocaleString()}`
   );
   console.log(`  Compiled:       ${report.totalTokensIn.toLocaleString()}`);
   console.log(`Tier mix:         ${JSON.stringify(report.tierMix)}`);
+  if (Object.keys(report.effortMix).length > 0)
+    console.log(`Effort mix:       ${JSON.stringify(report.effortMix)}`);
 
   console.log(`\nSavings by milestone:`);
   for (const [milestone, series] of Object.entries(report.savingsByMilestone)) {

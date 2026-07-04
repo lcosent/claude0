@@ -294,7 +294,7 @@ flowchart LR
 ```
 
 - **Compiler** — turns *goal + tags* into the smallest context bundle that still covers the task. Refuses to silently drop a required rule.
-- **Router** — maps each step to a model tier (Haiku / Sonnet / Opus), escalates on failure, auto-demotes a tier whose fail-rate climbs past 40%.
+- **Router** — maps each step to a model tier (Haiku / Sonnet / Opus, plus the architect tier **Fable** for planning/review) *and* a reasoning-effort level, escalates on failure, and demotes on two signals: a tier whose fail-rate climbs past 40%, or one that passes but burns runaway output tokens (cutting effort before tier). Escalation never promotes a stalled step into Fable.
 - **Contracts** — typed (Zod) inputs and outputs, with one automatic repair retry on a malformed response.
 - **Loop** — the `design → plan → gate → build → verify` orchestration behind `/zipline build`.
 - **Ledger** — an append-only `.zipline/ledger.jsonl` recording `tokens_in`, `baseline_tokens`, tier, and outcome for every operation. This is what makes the savings *provable* rather than claimed.
@@ -309,15 +309,22 @@ flowchart LR
   └─ ledger.jsonl     every operation logged, for reporting & learning
 ```
 
-**Policy** maps step types to tiers:
+**Policy** maps step types to a tier — and, optionally, a reasoning-effort
+override via `tier@effort` (bare tiers use a sensible per-tier default; `xhigh`/
+`max` are never chosen for you):
 
 ```yaml
-context-compile:    haiku    # mechanical summarization
+context-compile:    haiku       # mechanical summarization (effort: low)
 structured-extract: haiku
-unit-test-write:    sonnet   # needs judgment
+unit-test-write:    sonnet      # needs judgment (effort: medium)
 implement-small-fn: sonnet
-design-synthesis:   opus     # quality dominates cost
+design-synthesis:   fable       # architect tier for the 10% that plans (effort: high)
+risky-refactor:     opus@xhigh  # opt in to a furnace only when you mean it
 ```
+
+Cap an autonomous run so an overnight loop can't run away: `ZIPLINE_MAX_TOKENS`
+halts the loop before the next expensive step once the cumulative token spend is
+reached (unset = no cap).
 
 **Every ledger line** is a self-describing record:
 
@@ -404,13 +411,24 @@ full orchestration loop, self-learning, the token dashboard, cross-project polic
 sync, automatic integrations, a stable public API, and production-ready hook
 performance.
 
-**Beyond v1.0.0**
+**Fable-era routing (M20–M23, unreleased)** — the router now reasons about
+Fable and reasoning effort, demotes on cost regression (not just failures), and
+can cap an autonomous run's spend. All backward-compatible.
+- **Fable tier (M20)** — a first-class architect tier (~2× opus), assigned by
+  policy only; escalation can never promote a stalled step into it.
+- **Effort axis (M21)** — `tier@effort` overrides mapped to `claude --effort`;
+  `xhigh`/`max` are opt-in only, never a default.
+- **Cost-regression demotion (M22)** — a shared router demotes a tier that passes
+  but overthinks, cutting effort before tier.
+- **Budget circuit-breaker (M23)** — `ZIPLINE_MAX_TOKENS` halts a runaway loop.
+
+**Later**
 - Additional Anthropic model tiers as they ship
 - Ledger schema v2 migrations (the versioned schema makes this safe)
 - More native capabilities in the integrations layer
 
 <details>
-<summary>Full feature history (M0–M19)</summary>
+<summary>Full feature history (M0–M23)</summary>
 
 - **Context compilation (M1)** — minimal rule set per step, 64.4% median savings, silent-drop protection.
 - **Model routing (M2)** — policy-based tier selection, escalation, auto-demote; 19.8% of always-Opus cost at pass-rate parity.
@@ -425,6 +443,7 @@ performance.
 - **terse auto-disable + A/B (M12, M17)** — measures terse's true output delta and disables it if net-negative.
 - **Continuous learning (M14)** — `zipline learn` proposes rule changes from ledger evidence (preview-only).
 - **Stable API + versioned ledger (M16)**, **optional gstack detection (M18)**, **hook performance budget (M19)**.
+- **Fable tier (M20)** — architect tier off the escalation ladder; **effort axis (M21)** — `tier@effort`, never xhigh by default; **cost-regression demotion (M22)** — demote on overthinking, effort before tier; **budget breaker (M23)** — `ZIPLINE_MAX_TOKENS` halts runaway loops.
 
 </details>
 

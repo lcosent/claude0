@@ -1,6 +1,6 @@
 import { execFileSync } from "child_process";
 import { encode } from "gpt-tokenizer";
-import { Tier } from "./policy";
+import { Tier, Effort, effortForTier } from "./policy";
 
 // Real model calls run through the `claude` CLI in headless mode — on the
 // user's Claude Code subscription, NOT a paid API key. When claude is absent or
@@ -18,6 +18,7 @@ const TIER_MODEL: Record<Tier, string> = {
   haiku: "haiku",
   sonnet: "sonnet",
   opus: "opus",
+  fable: "fable",
 };
 
 /** Is the real (subscription) path available and not force-disabled? */
@@ -38,24 +39,42 @@ export function liveAvailable(): boolean {
  */
 function simulate(prompt: string, tier: Tier): ModelResponse {
   const inTokens = encode(prompt).length;
-  const factor = tier === "opus" ? 3 : tier === "sonnet" ? 2 : 1;
+  const factor =
+    tier === "fable" ? 4 : tier === "opus" ? 3 : tier === "sonnet" ? 2 : 1;
   // Deterministic pseudo-output derived from the prompt, capped.
   const text = `[simulated ${tier}] ${prompt.slice(0, 40 * factor)}`;
   return { text, tokens_out: encode(text).length, source: "simulate" };
 }
 
 /**
- * Call a model at the given tier. Uses the claude CLI subscription when live,
- * otherwise the deterministic stub. Never throws — a failed live call falls
- * back to simulate so the loop keeps making progress.
+ * Call a model at the given tier and reasoning effort. Uses the claude CLI
+ * subscription when live, otherwise the deterministic stub. Never throws — a
+ * failed live call falls back to simulate so the loop keeps making progress.
+ *
+ * `effort` maps to `claude --effort <level>`; it defaults to the tier's default
+ * (see effortForTier). The CLI degrades honestly on an unknown level (warns and
+ * uses its own default), so passing it is always safe.
  */
-export function callModel(prompt: string, tier: Tier): ModelResponse {
+export function callModel(
+  prompt: string,
+  tier: Tier,
+  effort: Effort = effortForTier(tier)
+): ModelResponse {
   if (!liveAvailable()) return simulate(prompt, tier);
 
   try {
     const raw = execFileSync(
       "claude",
-      ["-p", prompt, "--model", TIER_MODEL[tier], "--output-format", "json"],
+      [
+        "-p",
+        prompt,
+        "--model",
+        TIER_MODEL[tier],
+        "--effort",
+        effort,
+        "--output-format",
+        "json",
+      ],
       { encoding: "utf8", timeout: 120000, maxBuffer: 10 * 1024 * 1024 }
     );
     // claude -p --output-format json returns an envelope with a `result` string

@@ -32,6 +32,9 @@ export const LedgerEntry = z.object({
   rules_included: z.array(z.string()).default([]),
   rules_excluded: z.array(z.string()).default([]),
   note: z.string().default(""),
+  // Reasoning effort for this step (M21). Optional — absent on pre-M21 entries,
+  // which keeps old ledgers parseable (additive, no schema bump).
+  effort: z.string().optional(),
   // Optional per-capability accounting (M8 integrations). Absent on older
   // entries — optional keeps existing ledgers parseable (backward-compat).
   capabilities: z

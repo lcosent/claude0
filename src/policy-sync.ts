@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { Tier } from "./policy";
+import { Tier, Effort, PolicyEntry, entryTier, entryEffort, sameEntry, effortForTier } from "./policy";
 import { policyPath } from "./paths";
 import { appendLedger } from "./ledger";
 
@@ -13,28 +13,48 @@ import { appendLedger } from "./ledger";
 // (the global path `zipline init --global` creates). Flat `key: tier` format,
 // parsed directly — no YAML dependency.
 
-export type PolicyMap = Record<string, Tier>;
+// A policy entry is a bare tier (effort defaults per tier) or a `tier@effort`
+// override. Bare tiers round-trip exactly as before — full backward compat.
+export type PolicyMap = Record<string, PolicyEntry>;
 
 export function centralPolicyPath(): string {
   if (process.env.ZIPLINE_POLICY_REMOTE) return process.env.ZIPLINE_POLICY_REMOTE;
   return path.join(process.env.HOME || "", ".zipline", "policy.yaml");
 }
 
-/** Parse the flat `# comment` / `key: tier` policy format. */
+/**
+ * Parse the flat `# comment` / `key: tier` policy format. An entry may carry an
+ * optional effort override as `key: tier@effort` (e.g. `design-synthesis:
+ * fable@high`); a bare `key: tier` uses the tier's default effort.
+ */
 export function parsePolicy(text: string): PolicyMap {
   const out: PolicyMap = {};
   for (const line of text.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
-    const m = trimmed.match(/^([A-Za-z0-9._-]+):\s*(haiku|sonnet|opus)\s*$/);
-    if (m) out[m[1]] = m[2] as Tier;
+    const m = trimmed.match(
+      /^([A-Za-z0-9._-]+):\s*(haiku|sonnet|opus|fable)(?:@(low|medium|high|xhigh|max))?\s*$/
+    );
+    if (!m) continue;
+    const tier = m[2] as Tier;
+    out[m[1]] = m[3] ? { tier, effort: m[3] as Effort } : tier;
   }
   return out;
 }
 
+/** Render an entry back to its flat form (`tier` or `tier@effort`). */
+function serializeEntry(e: PolicyEntry): string {
+  const tier = entryTier(e);
+  // Only emit the @effort suffix when it differs from the tier's default, so
+  // bare-tier entries stay bare (byte-identical round-trip for old policies).
+  const effort = entryEffort(e);
+  return effort === effortForTier(tier) ? tier : `${tier}@${effort}`;
+}
+
 export function serializePolicy(policy: PolicyMap, header?: string): string {
   const lines = header ? [header, ""] : [];
-  for (const [step, tier] of Object.entries(policy)) lines.push(`${step}: ${tier}`);
+  for (const [step, entry] of Object.entries(policy))
+    lines.push(`${step}: ${serializeEntry(entry)}`);
   return lines.join("\n") + "\n";
 }
 
@@ -44,7 +64,7 @@ function readPolicyFile(file: string): PolicyMap {
 }
 
 const HEADER =
-  "# Zipline routing policy\n# Maps step types to Anthropic model tiers (haiku/sonnet/opus)";
+  "# Zipline routing policy\n# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)";
 
 export interface SyncResult {
   central: string;
@@ -63,7 +83,7 @@ export function pushPolicy(repoRoot: string): SyncResult {
   const central = readPolicyFile(centralFile);
 
   const merged: PolicyMap = { ...central, ...local };
-  const changed = Object.keys(merged).filter((k) => merged[k] !== central[k]);
+  const changed = Object.keys(merged).filter((k) => !sameEntry(merged[k], central[k]));
 
   fs.mkdirSync(path.dirname(centralFile), { recursive: true });
   fs.writeFileSync(centralFile, serializePolicy(merged, HEADER));
@@ -84,7 +104,7 @@ export function pullPolicy(repoRoot: string): SyncResult {
 
   // central under local: start from central, then local overrides on top.
   const merged: PolicyMap = { ...central, ...local };
-  const changed = Object.keys(merged).filter((k) => merged[k] !== local[k]);
+  const changed = Object.keys(merged).filter((k) => !sameEntry(merged[k], local[k]));
 
   fs.mkdirSync(path.dirname(localFile), { recursive: true });
   fs.writeFileSync(localFile, serializePolicy(merged, HEADER));

@@ -1,10 +1,11 @@
 import { compile, tokenCount, fullContextBundle } from "./compiler";
 import { appendLedger, readLedger } from "./ledger";
-import { Policy, nextTier, Tier } from "./policy";
+import { Policy, nextTier, Tier, effortForTier } from "./policy";
 import { StepOutputSchema } from "./contract";
 import { callModel } from "./llm";
 import { runCapability } from "./integrations";
 import { measureTerseOutputDelta, terseABToLogEntry } from "./integrations/terse-ab";
+import { budgetLimitTokens, budgetHaltNote } from "./budget";
 
 export interface DesignPrompt {
   hypothesis: string;
@@ -105,13 +106,17 @@ export async function designStep(
     repoRoot
   );
 
+  // Design-synthesis is the "10% planning" of the 10-80-10 split — the one step
+  // where the architect tier (Fable) earns its 2x cost. Overridable via policy.
+  const convergeTier: Tier = "fable";
   appendLedger(
     {
       ts: new Date().toISOString(),
       milestone: "M4-DESIGN",
       step: "converge",
       attempt: 1,
-      tier: "opus",
+      tier: convergeTier,
+      effort: effortForTier(convergeTier),
       tokens_in: tokenCount(convergenceBundle),
       tokens_out: 300,
       baseline_tokens: tokenCount(
@@ -279,7 +284,8 @@ export async function buildStep(
   const baseObjective = `${bundle.objective}\n\n${bundle.constraints.join("\n")}`;
   const terse = runCapability("terse-output", baseObjective, repoRoot);
   const prompt = terse.output;
-  const resp = callModel(prompt, tier);
+  const effort = effortForTier(tier);
+  const resp = callModel(prompt, tier, effort);
   // Success = the model returned substantive output for the step.
   const pass = resp.text.trim().length > 0;
 
@@ -314,6 +320,7 @@ export async function buildStep(
       step: `build-${milestone.id}`,
       attempt: 1,
       tier,
+      effort,
       tokens_in: tokenCount(bundle),
       tokens_out: resp.tokens_out,
       baseline_tokens: tokenCount(fullContextBundle(bundle.objective, repoRoot)),
@@ -364,7 +371,9 @@ export async function verifyStep(
     // FAIL if..." must not trip a naive substring match). Offline stub echoes
     // the prompt (no VERDICT line) → substantive output treated as PASS.
     const prompt = `${bundle.objective}\n\nImplementation:\n${implementation}\n\nStart your reply with a line "VERDICT: PASS" or "VERDICT: FAIL", then one reason.`;
-    const resp = callModel(prompt, "sonnet");
+    const reviewTier: Tier = "sonnet";
+    const reviewEffort = effortForTier(reviewTier);
+    const resp = callModel(prompt, reviewTier, reviewEffort);
     const verdict = resp.text.match(/VERDICT:\s*(PASS|FAIL)/i);
     const pass = verdict
       ? verdict[1].toUpperCase() === "PASS" // real model: trust its structured verdict
@@ -376,7 +385,8 @@ export async function verifyStep(
         milestone: "M4-VERIFY",
         step: `verify-${milestone.id}-${reviewer.name}`,
         attempt: 1,
-        tier: "sonnet",
+        tier: reviewTier,
+        effort: reviewEffort,
         tokens_in: tokenCount(bundle),
         tokens_out: resp.tokens_out,
         baseline_tokens: tokenCount(
@@ -417,7 +427,14 @@ export async function runM4Loop(
   plan: PlanOutput;
   milestonesCompleted: number;
   totalCost: number;
+  budgetHalted: boolean;
 }> {
+  const cap = budgetLimitTokens();
+  const spentSoFar = () =>
+    readLedger(repoRoot)
+      .filter((e) => e.milestone.startsWith("M4-"))
+      .reduce((sum, e) => sum + e.tokens_in + e.tokens_out, 0);
+
   // DESIGN
   const design = await designStep(
     { hypothesis, context: "Feature request from user" },
@@ -429,8 +446,39 @@ export async function runM4Loop(
 
   let milestonesCompleted = 0;
   let priorMilestoneId: string | null = null;
+  let budgetHalted = false;
 
   for (const milestone of plan.milestones) {
+    // Budget circuit-breaker (M23): halt before starting the next milestone's
+    // expensive GATE→BUILD→VERIFY once the cap is reached.
+    if (cap !== null) {
+      const spent = spentSoFar();
+      if (spent >= cap) {
+        appendLedger(
+          {
+            ts: new Date().toISOString(),
+            milestone: "M4-BUDGET",
+            step: `budget-halt-${milestone.id}`,
+            attempt: 1,
+            tier: "n/a",
+            tokens_in: 0,
+            tokens_out: 0,
+            baseline_tokens: 0,
+            pass: false,
+            metric: 0,
+            outcome: "STUCK",
+            retries: 0,
+            rules_included: [],
+            rules_excluded: [],
+            note: budgetHaltNote(spent, cap),
+          },
+          repoRoot
+        );
+        budgetHalted = true;
+        break;
+      }
+    }
+
     // GATE
     const gate = await gateStep(milestone, priorMilestoneId, repoRoot);
     if (!gate.proceed) {
@@ -466,10 +514,11 @@ export async function runM4Loop(
   const totalCost = m4Entries.reduce((sum, e) => sum + e.tokens_in + e.tokens_out, 0);
 
   return {
-    success: milestonesCompleted === plan.milestones.length,
+    success: milestonesCompleted === plan.milestones.length && !budgetHalted,
     design,
     plan,
     milestonesCompleted,
     totalCost,
+    budgetHalted,
   };
 }

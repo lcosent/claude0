@@ -5,6 +5,7 @@ export interface StepResult {
   tokens_out?: number;
   baseline_tokens?: number;
   tier?: string;
+  effort?: string;
   rules_included?: string[];
   rules_excluded?: string[];
   note?: string;
@@ -19,4 +20,7 @@ export interface Milestone {
   success: (metric: number) => boolean;
 }
 
-export type LoopOutcome = "PASS" | "FAIL" | "STUCK";
+// "BUDGET" is an INTERNAL outcome only — the loop returns it to signal a
+// budget-cap halt. It is never written to the ledger (which stays PASS/FAIL/STUCK
+// per the frozen schema); a halt persists as STUCK + a budget-halt note.
+export type LoopOutcome = "PASS" | "FAIL" | "STUCK" | "BUDGET";

@@ -1,4 +1,5 @@
 import { readLedger, LedgerEntry } from "./ledger";
+import { isBudgetHalt } from "./budget";
 
 export interface ReportTotals {
   totalRuns: number;
@@ -8,7 +9,9 @@ export interface ReportTotals {
   passCount: number;
   escalationCount: number; // retries > 0
   stuckCount: number;
+  budgetHalts: number; // STUCK entries caused by the budget breaker (M23)
   tierMix: Record<string, number>;
+  effortMix: Record<string, number>; // reasoning-effort distribution (M21)
   savingsByMilestone: Record<string, number[]>; // ordered savings ratio series
 }
 
@@ -26,7 +29,9 @@ export function buildReport(entries: LedgerEntry[] = readLedger()): ReportTotals
     passCount: 0,
     escalationCount: 0,
     stuckCount: 0,
+    budgetHalts: 0,
     tierMix: {},
+    effortMix: {},
     savingsByMilestone: {},
   };
 
@@ -37,7 +42,9 @@ export function buildReport(entries: LedgerEntry[] = readLedger()): ReportTotals
     if (e.pass) totals.passCount++;
     if (e.retries > 0) totals.escalationCount++;
     if (e.outcome === "STUCK") totals.stuckCount++;
+    if (isBudgetHalt(e.note)) totals.budgetHalts++;
     totals.tierMix[e.tier] = (totals.tierMix[e.tier] ?? 0) + 1;
+    if (e.effort) totals.effortMix[e.effort] = (totals.effortMix[e.effort] ?? 0) + 1;
 
     const ratio = savingsRatio(e);
     if (ratio !== null) {
@@ -75,8 +82,9 @@ if (require.main === module) {
   const report = buildReport(entries);
   console.log(`total runs: ${report.totalRuns}`);
   console.log(`pass: ${report.passCount} (${((report.passCount / report.totalRuns) * 100).toFixed(1)}%)`);
-  console.log(`escalations: ${report.escalationCount}, stuck: ${report.stuckCount}`);
+  console.log(`escalations: ${report.escalationCount}, stuck: ${report.stuckCount}, budget-halts: ${report.budgetHalts}`);
   console.log(`tier mix:`, report.tierMix);
+  console.log(`effort mix:`, report.effortMix);
   console.log(`tokens_in total: ${report.totalTokensIn}, tokens_out total: ${report.totalTokensOut}`);
   for (const [milestone, series] of Object.entries(report.savingsByMilestone)) {
     console.log(`${milestone} savings trend: ${series.map((s) => (s * 100).toFixed(0) + "%").join(", ")}`);

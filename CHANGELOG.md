@@ -7,7 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Backlog drained (M0–M19 shipped, v1.0.0 cut). New milestones will be added as they're scoped._
+### Added — Fable-era routing (M20–M23)
+
+Four routing upgrades prompted by the shift to Fable 5 as a first-class,
+expensive tier. Each has a binary offline gate (`npm test` runs M20–M23 green),
+and every change is backward-compatible: no ledger schema bump, old `policy.yaml`
+files still parse, and the budget breaker is off by default.
+
+- **M20: Fable tier.** `fable` joins the `Tier` union (`TIER_COST.fable = 2`, ~2×
+  opus) and `TIER_MODEL` (`--model fable`). Critically, `fable` is **off the
+  escalation ladder** (`TIER_ORDER` unchanged; new `ALL_TIERS` carries it for
+  cost/reporting): `nextTier` can never promote a stalled step into the architect
+  tier — Fable is assigned by policy only. The design-synthesis converge step and
+  `DEFAULT_POLICY` now default to `fable`. `test:m20`.
+- **M21: reasoning-effort axis.** New `Effort` type + `DEFAULT_EFFORT_BY_TIER`
+  (`haiku→low, sonnet→medium, opus/fable→high`; **never `xhigh`/`max` by
+  default**). Policy entries accept an optional `tier@effort` override
+  (`design-synthesis: fable@high`); bare tiers round-trip byte-identically.
+  `callModel` gains an `effort` arg mapped to `claude --effort` (the CLI degrades
+  honestly on unknown levels). The ledger gains an optional `effort` field
+  (additive, no schema bump); `zipline report` shows an effort mix. `test:m21`.
+- **M22: cost-regression demotion.** The auto-demote decision is extracted from
+  the M2 sim into a shared `src/router.ts` (`assessRoute`). Beyond the existing
+  fail-rate escalation, it adds an **overthinking** trigger — a tier that passes
+  but at ballooning `tokens_out` — and cuts **effort before tier** (reduce
+  thinking before switching models). Reliability wins ties. `test:m22`.
+- **M23: budget circuit-breaker.** `ZIPLINE_MAX_TOKENS` sets a hard cumulative
+  cap; `runMilestone`/`runM4Loop` halt before the next expensive step once it's
+  reached. A halt persists as a schema-safe `STUCK` entry with a `budget-halt:`
+  note (internal `LoopOutcome` `"BUDGET"` is never written); `zipline report`
+  counts budget halts. Unset = no cap. `test:m23`.
+
+_M0–M19 shipped in v1.0.0 below._
 
 ## [1.0.0] - 2026-07-03
 

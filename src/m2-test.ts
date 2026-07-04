@@ -1,5 +1,6 @@
 import { appendLedger } from "./ledger";
-import { Tier, TIER_COST, nextTier, Policy } from "./policy";
+import { Tier, TIER_COST, nextTier, Policy, effortForTier } from "./policy";
+import { assessRoute } from "./router";
 
 // Deterministic seeded RNG (mulberry32) so the simulation is reproducible.
 function rng(seed: number) {
@@ -15,7 +16,7 @@ function rng(seed: number) {
 interface StepSpec {
   step: string;
   // ground-truth pass probability per tier for this step
-  passProb: Record<Tier, number>;
+  passProb: Record<string, number>; // escalation-ladder tiers only (haiku/sonnet/opus)
 }
 
 const STEPS: StepSpec[] = [
@@ -99,11 +100,15 @@ function runRouter(steps: StepSpec[], rand: () => number) {
       });
 
       if (list.length === AUTO_DEMOTE_WINDOW) {
-        const failRate = list.filter((x) => !x).length / list.length;
-        if (failRate > AUTO_DEMOTE_THRESHOLD && policy[step.step] !== "opus") {
-          const from = policy[step.step];
-          policy[step.step] = nextTier(policy[step.step]);
-          demoteEvents.push(`${step.step}: ${from} -> ${policy[step.step]} (fail-rate ${(failRate * 100).toFixed(0)}%)`);
+        // Delegate the demote decision to the shared router (M22) — same
+        // fail-rate rule, now one implementation for both sim and live loop.
+        const action = assessRoute(
+          { tier: policy[step.step], effort: effortForTier(policy[step.step]) },
+          { outcomes: list }
+        );
+        if (action.kind === "escalate-tier") {
+          policy[step.step] = action.to;
+          demoteEvents.push(`${step.step}: ${action.from} -> ${action.to} (${action.detail})`);
           recentOutcomes[step.step] = [];
         }
       }
