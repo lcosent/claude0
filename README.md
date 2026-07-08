@@ -256,6 +256,7 @@ capabilities simply report `inactive here` instead of erroring — nothing break
 | `zipline compile "goal" tags` | Preview the compiled context for a task — spends no tokens |
 | `zipline policy <pull\|push>` | Share a tuned routing policy across repos (local overrides always win) |
 | `zipline learn [--apply]` | Suggest rule improvements from your ledger (preview-only without `--apply`) |
+| `zipline bloat [--fix] [--dry-run]` | Detect context bloat and optionally auto-fix (structural, cache, compression, escalation) |
 | `zipline uninstall [--global] [--force]` | Cleanly remove zipline and its hooks (warns if you have logged data) |
 
 **Removing it is just as clean:**
@@ -438,7 +439,7 @@ autonomous run's spend. All backward-compatible — no ledger schema bump, old
 - **terse auto-disable + A/B (M12, M17)** — measures terse's true output delta and disables it if net-negative.
 - **Continuous learning (M14)** — `zipline learn` proposes rule changes from ledger evidence (preview-only).
 - **Stable API + versioned ledger (M16)**, **optional gstack detection (M18)**, **hook performance budget (M19)**.
-- **Fable tier (M20)** — architect tier off the escalation ladder; **effort axis (M21)** — `tier@effort`, never xhigh by default; **cost-regression demotion (M22)** — demote on overthinking, effort before tier; **budget breaker (M23)** — `ZIPLINE_MAX_TOKENS` halts runaway loops.
+- **Fable tier (M20)** — architect tier off the escalation ladder; **effort axis (M21)** — `tier@effort`, never xhigh by default; **cost-regression demotion (M22)** — demote on overthinking, effort before tier; **budget breaker (M23)** — `ZIPLINE_MAX_TOKENS` halts runaway loops; **bloat detection (M24)** — `zipline bloat` detects and auto-fixes context bloat from structural, cache, compression, and escalation issues.
 
 </details>
 

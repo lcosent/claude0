@@ -217,6 +217,7 @@ Milestone status values: `PENDING → IN_PROGRESS → PASSED / BLOCKED`.
 | M21 | Effort axis | ✅ FABLE-ERA | `tier@effort` → `claude --effort`; xhigh/max opt-in only; optional ledger field |
 | M22 | Cost-regression demotion | ✅ FABLE-ERA | Shared `router.ts`; demote on overthinking; effort before tier; reliability wins |
 | M23 | Budget breaker | ✅ FABLE-ERA | `ZIPLINE_MAX_TOKENS` halts runaway loops; schema-safe STUCK + budget-halt note |
+| M24 | Bloat detection | ✅ | Detect & prevent context bloat from structural and cache issues; safe auto-fix |
 
 ---
 
@@ -293,3 +294,34 @@ ceiling. All four are backward-compatible (no ledger schema bump; old
   `"BUDGET"` never written). `zipline report` counts budget halts.
 - **Success criterion:** `test:m23` — small cap halts before maxAttempts and stops
   within one step of the cap; report counts it; no cap = zero behavior change.
+
+---
+
+## M24 — Context Bloat Detection & Prevention
+
+- **Goal:** Detect and prevent context bloating from structural issues (overweight
+  rules, redundant content, broad tags), cache inefficiency (repeated compilations),
+  compression degradation, and escalation spirals — so zipline's savings don't
+  silently erode over time.
+- **Hypothesis:** Cheap ledger + rules scan can detect all four bloat vectors and
+  produce actionable recommendations. Auto-fix can safely split/merge rules without
+  breaking the compiler.
+- **Build:** `src/bloat-detector.ts` (detection thresholds + safe auto-fix) +
+  `zipline bloat [--fix] [--dry-run]` CLI command. Four vectors:
+  1. **Structural bloat** — rules >1500 tokens, redundant pairs >60% overlap, tags
+     hitting >10 rules
+  2. **Cache inefficiency** — repeated compilations, cache hit rate <50%
+  3. **Compression degradation** — declining savings trend (last 10 vs prior 10)
+  4. **Escalation spirals** — ≥3 escalations in 20-entry window without settling
+  
+  Auto-fix splits overweight rules at headings, merges redundant pairs (union tags,
+  append unique lines). Dry-run previews changes.
+- **Test:** `test:m24` — 7 gates: module exists; detects all four vectors; auto-fix
+  safely splits and merges rules; report renders actionable items.
+- **Success criterion (all required):**
+  1. Detection runs in <100ms (one ledger + rules read)
+  2. All thresholds conservative (no false positives on healthy repos)
+  3. Auto-fix is reversible and safe (verified by gates 6-7)
+  4. Report severity escalates to `critical` on spirals
+- **Gate → later:** detection is passive (no hooks, no automatic runs); integrate
+  into CI or run manually when savings drop.

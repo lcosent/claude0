@@ -27,6 +27,7 @@ import { CAPABILITIES, detectRepoEnv, resolveAvailability } from "./integrations
 import { readLedger } from "./ledger";
 import { buildReport, detectRegression } from "./report";
 import { compile, fullContextBundle, tokenCount } from "./compiler";
+import { printBloatReport, autoFixBloat } from "./bloat-detector";
 
 function initCommand(opts: { global?: boolean } = {}) {
   const targetDir = opts.global
@@ -405,6 +406,24 @@ function main() {
         void compressOutputFromStdin(readStdin);
         break;
 
+      case "bloat": {
+        const root = requireZiplineRoot();
+        if (args.includes("--fix")) {
+          const dryRun = args.includes("--dry-run");
+          console.log(dryRun ? "DRY RUN — no files will be modified\n" : "");
+          const fixes = autoFixBloat(root, dryRun);
+          if (fixes.length === 0) {
+            console.log("No auto-fixable bloat detected.");
+          } else {
+            console.log(`Applied ${fixes.length} fix(es):`);
+            fixes.forEach((f, i) => console.log(`  ${i + 1}. ${f}`));
+          }
+        } else {
+          printBloatReport(root);
+        }
+        break;
+      }
+
       default:
         console.log(`Zipline — deterministic orchestration spine for Claude Code
 
@@ -415,6 +434,7 @@ Usage:
   zipline doctor                  Show integrations stack + per-repo availability
   zipline policy <pull|push>      Sync routing policy with the central store (repo overrides win)
   zipline learn [--apply]         Propose rule changes from ledger evidence (proposal-only without --apply)
+  zipline bloat [--fix] [--dry-run]  Detect context bloat and optionally auto-fix
   zipline uninstall [--global] [--force]  Remove .zipline/ and hooks
   zipline intercept               (Internal: called by Claude Code hook)
 
