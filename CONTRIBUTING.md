@@ -1,6 +1,14 @@
+<div align="center">
+
 # Contributing to Zipline
 
-Thank you for your interest in contributing to Zipline! This document provides guidelines and instructions for contributing.
+Thank you for your interest in making zipline better.
+
+**[Report Bug](https://github.com/lcosent/zipline/issues)** · **[Request Feature](https://github.com/lcosent/zipline/issues)** · **[Discussions](https://github.com/lcosent/zipline/discussions)**
+
+</div>
+
+---
 
 ## Code of Conduct
 
@@ -218,12 +226,20 @@ export const LedgerEntry = z.object({
 6. **Push:** `git push origin main --tags`
 7. **Create GitHub release** with changelog
 
+---
+
+<div align="center">
+
 ## Questions?
 
-- **Issues:** Open an issue for bugs or feature requests
-- **Discussions:** Use GitHub Discussions for questions
-- **Security:** Email security issues privately (see SECURITY.md)
+**[Open an Issue](https://github.com/lcosent/zipline/issues)** · **[Start a Discussion](https://github.com/lcosent/zipline/discussions)** · **[Security Policy](SECURITY.md)**
 
-## License
+<br/>
+
+### Thank you for contributing! 
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+**[⬆ back to top](#contributing-to-zipline)**
+
+</div>

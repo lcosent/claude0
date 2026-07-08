@@ -29,7 +29,7 @@ export function loadRules(repoRoot?: string): Rule[] {
     .filter((f) => f.endsWith(".md"))
     .map((f) => {
       const raw = fs.readFileSync(path.join(rulesDirectory, f), "utf8");
-      const match = raw.match(/^---\ntags:\s*\[([^\]]*)\]\n---\n([\s\S]*)$/);
+      const match = raw.match(/^---\r?\ntags:\s*\[([^\]]*)\]\r?\n---\r?\n([\s\S]*)$/);
       if (!match) throw new Error(`malformed rule frontmatter: ${f}`);
       const tags = match[1].split(",").map((t) => t.trim());
       const body = match[2].trim();

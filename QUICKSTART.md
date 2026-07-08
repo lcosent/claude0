@@ -1,6 +1,14 @@
-# Get Started in 30 Seconds
+<div align="center">
 
-Zipline cuts your Claude Code bill by ~65%. Here's how to set it up.
+# ⚡️ Quick Start
+
+### Set up zipline in 30 seconds
+
+Cut your Claude Code bill by 65%. No workflow changes.
+
+<br/>
+
+</div>
 
 ---
 
@@ -167,8 +175,14 @@ A: No. The hook runs in under 1ms. Claude actually responds *faster* because the
 
 ---
 
-## Next steps
+<div align="center">
 
-You're done. Go use Claude Code and save tokens.
+## You're all set
 
-Want details? See the [full README](README.md).
+Go use Claude Code and save tokens.
+
+<br/>
+
+**[Read full docs](README.md)** · **[⭐️ Star this repo](https://github.com/lcosent/zipline)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20zipline&url=https://github.com/lcosent/zipline)**
+
+</div>

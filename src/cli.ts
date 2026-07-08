@@ -43,8 +43,8 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
     : rulesDir(targetDir);
 
   if (fs.existsSync(ziplineDirPath)) {
-    console.error(`Already initialized: ${ziplineDirPath}`);
-    process.exit(1);
+    console.log(`Already initialized: ${ziplineDirPath}`);
+    process.exit(0);
   }
 
   const mode = opts.expert ? "expert" : "turnkey";
