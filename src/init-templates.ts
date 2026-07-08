@@ -30,8 +30,8 @@ tags: [git, commits]
 Write commit messages that explain why, not what. Use conventional commit format: \`feat:\`, \`fix:\`, \`refactor:\`, \`docs:\`, \`test:\`. Keep commits atomic — one logical change per commit. Always review \`git diff --staged\` before committing.`,
 };
 
-export const TURNKEY_POLICY = `# This policy is managed by zipline (turnkey mode).
-# Run 'zipline expert' to unlock for manual editing.
+export const TURNKEY_POLICY = `# This policy is managed by claude0 (turnkey mode).
+# Run 'claude0 expert' to unlock for manual editing.
 # Routing: haiku (cheap/fast) → sonnet (balanced) → opus (hard tasks) → fable (architecture/design)
 
 context-compile: haiku
@@ -44,7 +44,7 @@ debate: sonnet
 review: sonnet
 `;
 
-export const EXPERT_POLICY = `# Zipline routing policy (expert mode — edit freely)
+export const EXPERT_POLICY = `# ClaudeZero routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 # Lower tiers are cheaper; escalation happens on contract validation failure.
 # fable is the architect tier (~2x opus) — assign it only to planning/review,
@@ -68,14 +68,14 @@ export const DEFAULT_POLICY = TURNKEY_POLICY;
 // of matcher-objects, each holding a "hooks" array of command entries.
 // UserPromptSubmit takes no matcher — it fires on every prompt submission.
 export const HOOK_EVENT = "UserPromptSubmit";
-export const HOOK_COMMAND = "zipline intercept";
+export const HOOK_COMMAND = "claude0 intercept";
 
 // PostToolUse compresses verbose Bash output before it reaches the model's
 // context. matcher "Bash" is an exact tool-name match; the command replaces the
 // model's view via hookSpecificOutput.updatedToolOutput (side effects already ran).
 export const POST_TOOL_EVENT = "PostToolUse";
 export const POST_TOOL_MATCHER = "Bash";
-export const POST_TOOL_COMMAND = "zipline compress-output";
+export const POST_TOOL_COMMAND = "claude0 compress-output";
 
 export const HOOK_CONFIG = {
   hooks: {
@@ -93,24 +93,24 @@ export const HOOK_CONFIG = {
   },
 };
 
-export const README = `# Zipline
+export const README = `# ClaudeZero
 
-This repository is configured with **zipline** — a deterministic orchestration spine for Claude Code.
+This repository is configured with **claude0** — a deterministic orchestration spine for Claude Code.
 
 ## What It Does
 
 - **Context compilation**: Every step gets minimal context (only relevant rules), not the full CLAUDE.md
 - **Token savings**: Median 60-70% reduction in input tokens
-- **Learning**: Every operation logs to \`.zipline/ledger.jsonl\` for continuous improvement
+- **Learning**: Every operation logs to \`.claude0/ledger.jsonl\` for continuous improvement
 - **Routing**: Picks the cheapest Anthropic tier (Haiku/Sonnet/Opus) that can pass each step
 
 ## Daily Usage
 
-After initialization, zipline is **transparent** — just use Claude Code normally:
+After initialization, claude0 is **transparent** — just use Claude Code normally:
 
 \`\`\`bash
 claude> fix the auth bug
-# Zipline automatically:
+# ClaudeZero automatically:
 # - Compiles minimal context (only security, typescript, testing rules)
 # - Routes to appropriate tier (likely Sonnet for implementation)
 # - Logs tokens_in, baseline_tokens, savings to ledger
@@ -121,7 +121,7 @@ claude> fix the auth bug
 For complex features, use the full design → plan → build → verify loop:
 
 \`\`\`bash
-claude> /zipline build "add user authentication"
+claude> /claude0 build "add user authentication"
 # Runs: DESIGN (debate) → PLAN (milestones) → GATE → BUILD → VERIFY
 \`\`\`
 
@@ -130,16 +130,16 @@ claude> /zipline build "add user authentication"
 Check token savings and system behavior:
 
 \`\`\`bash
-zipline report
+claude0 report
 # Shows: total runs, savings %, tier mix, escalation rate, stuck count
 \`\`\`
 
 ## Files
 
-- \`.zipline/rules/*.md\` — Context rules, one concern per file, frontmatter-tagged
-- \`.zipline/policy.yaml\` — Step-to-tier routing policy (auto-tuned over time)
-- \`.zipline/ledger.jsonl\` — Append-only log of every operation
-- \`.claude/settings.json\` — Hook configuration (added by \`zipline init\`)
+- \`.claude0/rules/*.md\` — Context rules, one concern per file, frontmatter-tagged
+- \`.claude0/policy.yaml\` — Step-to-tier routing policy (auto-tuned over time)
+- \`.claude0/ledger.jsonl\` — Append-only log of every operation
+- \`.claude/settings.json\` — Hook configuration (added by \`claude0 init\`)
 
 ## Learn More
 

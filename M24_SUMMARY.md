@@ -2,7 +2,7 @@
 
 ## What Was Built
 
-A comprehensive bloat detection and auto-fix system for zipline that monitors four vectors where context savings can silently erode:
+A comprehensive bloat detection and auto-fix system for claude0 that monitors four vectors where context savings can silently erode:
 
 ### 1. **Structural Bloat Detection**
 - **Overweight rules**: Detects rules exceeding 1500 tokens (should be split)
@@ -33,7 +33,7 @@ A comprehensive bloat detection and auto-fix system for zipline that monitors fo
 - `M24_SUMMARY.md` — This summary
 
 ### Modified Files
-- `src/cli.ts` — Added `zipline bloat [--fix] [--dry-run]` command
+- `src/cli.ts` — Added `claude0 bloat [--fix] [--dry-run]` command
 - `package.json` — Added `test:m24` script and updated main test runner
 - `MILESTONES.md` — Added M24 entry in milestone table and detailed section
 - `README.md` — Added bloat command to command reference table
@@ -61,13 +61,13 @@ Both operations are:
 
 ```bash
 # Detect bloat (read-only)
-zipline bloat
+claude0 bloat
 
 # Preview fixes without applying
-zipline bloat --fix --dry-run
+claude0 bloat --fix --dry-run
 
 # Apply fixes
-zipline bloat --fix
+claude0 bloat --fix
 ```
 
 ## Test Coverage
@@ -94,14 +94,14 @@ Run with: `npm run test:m24`
 
 Detection is **passive** (no hooks, no automatic runs). Recommended usage:
 
-- Run `zipline bloat` weekly or when savings drop unexpectedly
+- Run `claude0 bloat` weekly or when savings drop unexpectedly
 - Integrate into CI for repos with active rule churn
 - Check before and after adding new rules to prevent bloat
 
 ## Report Format
 
 ```
-Zipline Bloat Report (2026-07-08T...)
+ClaudeZero Bloat Report (2026-07-08T...)
 Severity: WARNING
 
 STRUCTURAL BLOAT
@@ -149,7 +149,7 @@ These are valid but not urgent; detection alone closes the visibility gap.
 **Committed:** Detect all four bloat vectors, produce actionable recommendations, auto-fix safely.
 
 **Delivered:** 
-- ✅ `zipline bloat` command with 7 passing gates
+- ✅ `claude0 bloat` command with 7 passing gates
 - ✅ <100ms runtime
 - ✅ Zero false positives
 - ✅ Safe, reversible auto-fix

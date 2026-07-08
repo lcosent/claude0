@@ -1,4 +1,4 @@
-# Zipline Architecture
+# ClaudeZero Architecture
 
 How the pieces fit: the five-component spine, the integrations layer, and the
 per-repo state directory. All diagrams are Mermaid (GitHub renders them natively).
@@ -7,11 +7,11 @@ per-repo state directory. All diagrams are Mermaid (GitHub renders them natively
 
 The spine owns routing, context compilation, and the ledger. Integrations are
 native capabilities that auto-select per step; external tools are accelerators,
-never hard dependencies. `.zipline/` is per-repo state, like `.git/`.
+never hard dependencies. `.claude0/` is per-repo state, like `.git/`.
 
 ```mermaid
 flowchart TB
-    subgraph spine["zipline spine (TypeScript)"]
+    subgraph spine["claude0 spine (TypeScript)"]
         COMPILER["COMPILER<br/>goal + tags → minimal bundle"]
         ROUTER["ROUTER<br/>step → Haiku/Sonnet/Opus"]
         CONTRACTS["CONTRACTS<br/>Zod I/O + repair retry"]
@@ -28,7 +28,7 @@ flowchart TB
         DLOG["decision-log<br/>append-only"]
     end
 
-    subgraph state[".zipline/ (per-repo, like .git/)"]
+    subgraph state[".claude0/ (per-repo, like .git/)"]
         RULES["rules/*.md<br/>tagged concerns"]
         POLICY["policy.yaml<br/>step → tier"]
         LEDGERFILE["ledger.jsonl<br/>every op logged"]
@@ -64,24 +64,24 @@ flowchart TB
 ## Request data flow — the intercept pipe
 
 When Claude Code submits a prompt, the `UserPromptSubmit` hook calls
-`zipline intercept`. Zipline compiles minimal context, injects it back, and
-logs the real input-side token cost. A non-zipline repo or any failure exits
+`claude0 intercept`. ClaudeZero compiles minimal context, injects it back, and
+logs the real input-side token cost. A non-claude0 repo or any failure exits
 cleanly without disturbing the prompt.
 
 ```mermaid
 sequenceDiagram
     participant User
     participant CC as Claude Code
-    participant Hook as zipline intercept
+    participant Hook as claude0 intercept
     participant Comp as COMPILER
     participant Led as LEDGER
 
     User->>CC: submit prompt
     CC->>Hook: UserPromptSubmit {prompt, cwd} (stdin JSON)
-    Hook->>Hook: findZiplineRoot(cwd)
-    alt not a zipline repo
+    Hook->>Hook: findClaudeZeroRoot(cwd)
+    alt not a claude0 repo
         Hook-->>CC: exit 0 (inject nothing)
-    else zipline repo
+    else claude0 repo
         Hook->>Hook: inferTags(prompt) → [security, typescript, ...]
         Hook->>Comp: compile(prompt, tags)
         Comp-->>Hook: bundle (only matched rules)
@@ -95,7 +95,7 @@ sequenceDiagram
 
 Capabilities are chosen by step tags and gated by per-repo availability. A
 TS-only capability (symbol-query) degrades to "inactive here" in a Python repo
-rather than erroring. `zipline doctor` shows the resulting status.
+rather than erroring. `claude0 doctor` shows the resulting status.
 
 ```mermaid
 flowchart TD
@@ -128,7 +128,7 @@ flowchart TD
 
 The efficiency tools people bolt onto Claude Code can't be bundled: `rtk` is a
 Rust binary, Context7/LSP are MCP servers invoked inside Claude's tool loop (not
-callable from a CLI), others are Python or prompt-skills. So zipline:
+callable from a CLI), others are Python or prompt-skills. So claude0:
 
 - **replicates each capability natively in TypeScript** — always works, zero setup;
 - **auto-detects the real tool** and uses it as an accelerator when present (only
@@ -139,10 +139,10 @@ callable from a CLI), others are Python or prompt-skills. So zipline:
 
 ## Ledger as the source of truth
 
-Every operation appends one JSON line to `.zipline/ledger.jsonl`. This makes
+Every operation appends one JSON line to `.claude0/ledger.jsonl`. This makes
 savings falsifiable: `baseline_tokens` records what naive full-context would have
 cost, so `(baseline - tokens_in)/baseline` is provable per run. M8 adds an optional
 `capabilities[]` array per entry (backward-compatible) recording each capability's
-`tokens_before`/`tokens_after`/`source`. `zipline report` shows compiler savings;
-`zipline doctor` shows capability net-delta — kept separate so the two are never
+`tokens_before`/`tokens_after`/`source`. `claude0 report` shows compiler savings;
+`claude0 doctor` shows capability net-delta — kept separate so the two are never
 double-counted.

@@ -1,5 +1,5 @@
 {
-  "name": "zipline",
+  "name": "claude0",
   "version": "1.2.0",
   "description": "Cut your Claude Code bill by 65%. Intelligent context compilation that sends only relevant rules. Zero workflow changes.",
   "main": "dist/index.js",
@@ -12,16 +12,16 @@
     "./cli": "./dist/cli.js"
   },
   "bin": {
-    "zipline": "./dist/cli.js"
+    "claude0": "./dist/cli.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lcosent/zipline.git"
+    "url": "git+https://github.com/lcosent/claude0.git"
   },
   "bugs": {
-    "url": "https://github.com/lcosent/zipline/issues"
+    "url": "https://github.com/lcosent/claude0/issues"
   },
-  "homepage": "https://github.com/lcosent/zipline#readme",
+  "homepage": "https://github.com/lcosent/claude0#readme",
   "scripts": {
     "build": "tsc",
     "test": "npm run test:mode && npm run test:m1 && npm run test:m2 && npm run test:m3 && npm run test:m4 && npm run test:m5 && npm run test:m6 && npm run test:m7 && npm run test:m8 && npm run test:m10 && npm run test:m11 && npm run test:m12 && npm run test:m13 && npm run test:m14 && npm run test:m16 && npm run test:m17 && npm run test:m18 && npm run test:m19 && npm run test:m20 && npm run test:m21 && npm run test:m22 && npm run test:m23 && npm run test:m24",

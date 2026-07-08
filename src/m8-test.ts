@@ -19,7 +19,7 @@ import { CapabilityResult, RepoEnv } from "./integrations/types";
 // This is the slice that removes the outside-voice "optimizes nothing" critique.
 
 function main() {
-  const repoRoot = process.cwd(); // run from repo root with .zipline/
+  const repoRoot = process.cwd(); // run from repo root with .claude0/
   let pass = 0;
   let fail = 0;
   const check = (name: string, ok: boolean, detail = "") => {
@@ -95,7 +95,7 @@ function main() {
 
   // 6. renderContext formats selected rules as a bulleted block.
   const rendered = renderContext(compile("x", ["security"], ["security"], repoRoot));
-  check("renderContext: produces a bulleted rules block", rendered.includes("- ") && rendered.includes("zipline"));
+  check("renderContext: produces a bulleted rules block", rendered.includes("- ") && rendered.includes("claude0"));
 
   // ---- Integrations capability gates ----------------------------------------
 

@@ -2,7 +2,7 @@
 //
 // A capability replicates an efficiency tool natively in TypeScript (always-on
 // baseline) and optionally uses a real external tool as an accelerator when
-// detected. Zipline selects capabilities per step automatically — the user
+// detected. ClaudeZero selects capabilities per step automatically — the user
 // never picks one. See DESIGN.md and the M8 plan.
 
 /**
@@ -20,7 +20,7 @@ export interface RepoEnv {
   gstackInstalled: boolean; // optional orchestration layer — detected, never invoked
 }
 
-/** How a capability runs in this repo, for `zipline doctor`. */
+/** How a capability runs in this repo, for `claude0 doctor`. */
 export type CapabilityStatus =
   | "native" // native impl active
   | "accelerated" // native + a detected accelerator (e.g. rtk on PATH)

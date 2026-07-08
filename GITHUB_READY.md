@@ -1,4 +1,4 @@
-# 🚀 Zipline — GitHub Ready Checklist
+# 🚀 ClaudeZero — GitHub Ready Checklist
 
 **Status:** ✅ Ready to publish  
 **Date:** 2026-07-03  
@@ -87,11 +87,11 @@ orchestration, anthropic, typescript, productivity, cost-savings
 - [ ] Verify CI passes
 
 ### Optional: npm Publishing
-- [ ] Check if `zipline` name available on npm
-- [ ] Consider scoped package: `@username/zipline`
+- [ ] Check if `claude0` name available on npm
+- [ ] Consider scoped package: `@username/claude0`
 - [ ] Login to npm: `npm login`
 - [ ] Publish: `npm publish`
-- [ ] Verify installation: `npm install -g zipline`
+- [ ] Verify installation: `npm install -g claude0`
 
 ---
 
@@ -99,18 +99,18 @@ orchestration, anthropic, typescript, productivity, cost-savings
 
 Replace `YOUR_USERNAME` with your GitHub username:
 
-- Repository: `https://github.com/YOUR_USERNAME/zipline`
-- Issues: `https://github.com/YOUR_USERNAME/zipline/issues`
-- Pull Requests: `https://github.com/YOUR_USERNAME/zipline/pulls`
-- Actions: `https://github.com/YOUR_USERNAME/zipline/actions`
-- Releases: `https://github.com/YOUR_USERNAME/zipline/releases`
+- Repository: `https://github.com/YOUR_USERNAME/claude0`
+- Issues: `https://github.com/YOUR_USERNAME/claude0/issues`
+- Pull Requests: `https://github.com/YOUR_USERNAME/claude0/pulls`
+- Actions: `https://github.com/YOUR_USERNAME/claude0/actions`
+- Releases: `https://github.com/YOUR_USERNAME/claude0/releases`
 
 ---
 
 ## 📦 Files Ready for GitHub
 
 ```
-zipline/
+claude0/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── bug_report.md
@@ -118,7 +118,7 @@ zipline/
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── workflows/
 │       └── ci.yml
-├── .zipline/
+├── .claude0/
 │   ├── rules/                 (6 sample rules)
 │   └── policy.yaml
 ├── src/                       (18 TypeScript files)
@@ -147,7 +147,7 @@ zipline/
 Go to: https://github.com/new
 
 Settings:
-- **Name:** zipline
+- **Name:** claude0
 - **Description:** (copy from above)
 - **Visibility:** Public (recommended) or Private
 - **Initialize:** ❌ NO README, ❌ NO .gitignore, ❌ NO license
@@ -155,10 +155,10 @@ Settings:
 ### 2. Connect and Push
 
 ```bash
-cd /Users/luca/Documents/coding/Infra/zipline
+cd /Users/luca/Documents/coding/Infra/claude0
 
 # Add remote (replace YOUR_USERNAME)
-git remote add origin https://github.com/YOUR_USERNAME/zipline.git
+git remote add origin https://github.com/YOUR_USERNAME/claude0.git
 
 # Push
 git push -u origin master
@@ -209,19 +209,19 @@ Once published:
 
 ### Social Media
 ```
-🚀 Just released Zipline v0.1.0 — save 60-70% of @AnthropicAI Claude Code tokens!
+🚀 Just released ClaudeZero v0.1.0 — save 60-70% of @AnthropicAI Claude Code tokens!
 
 ✅ Compiles minimal context (not full CLAUDE.md)
 ✅ Smart routing (Haiku/Sonnet/Opus)
 ✅ Learning from runs
 ✅ All milestones passing
 
-github.com/YOUR_USERNAME/zipline
+github.com/YOUR_USERNAME/claude0
 ```
 
 ### Communities
 - Reddit: r/ClaudeAI, r/programming, r/typescript
-- Hacker News: "Show HN: Zipline – Save 60-70% of Claude Code tokens"
+- Hacker News: "Show HN: ClaudeZero – Save 60-70% of Claude Code tokens"
 - Dev.to: Write a blog post with before/after examples
 - Twitter/X: Tag @AnthropicAI
 - LinkedIn: Share in AI/dev groups

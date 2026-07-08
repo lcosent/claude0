@@ -2,7 +2,7 @@
 
 # ⚡️ Quick Start
 
-### Set up zipline in 30 seconds
+### Set up claude0 in 30 seconds
 
 Cut your Claude Code bill by 65%. No workflow changes.
 
@@ -15,7 +15,7 @@ Cut your Claude Code bill by 65%. No workflow changes.
 ## Install
 
 ```bash
-npm install -g zipline
+npm install -g claude0
 ```
 
 ---
@@ -24,21 +24,21 @@ npm install -g zipline
 
 ```bash
 cd your-project
-zipline init
+claude0 init
 ```
 
 You'll see:
 ```
-Zipline initialized in /your/project (turnkey mode)
+ClaudeZero initialized in /your/project (turnkey mode)
 
 Created:
-  .zipline/rules/        (6 sample rules)
-  .zipline/policy.yaml   (routing policy — managed)
-  .zipline/mode.json     (turnkey mode)
-  .zipline/ledger.jsonl  (empty log)
+  .claude0/rules/        (6 sample rules)
+  .claude0/policy.yaml   (routing policy — managed)
+  .claude0/mode.json     (turnkey mode)
+  .claude0/ledger.jsonl  (empty log)
   .claude/settings.json  (hook configured)
 
-Next: Just use Claude Code normally. Zipline works transparently.
+Next: Just use Claude Code normally. ClaudeZero works transparently.
 ```
 
 **That's the entire setup.** You're done.
@@ -55,18 +55,18 @@ claude> add a login form
 claude> refactor the API handler
 ```
 
-Zipline runs invisibly on every prompt. You won't see it work.
+ClaudeZero runs invisibly on every prompt. You won't see it work.
 
 ---
 
 ## Check your savings
 
 ```bash
-zipline status
+claude0 status
 ```
 
 ```
-Zipline Status
+ClaudeZero Status
 ─────────────────────────────────
 ✓ Saving 65.2% on average
 ✓ 47 runs, 93.6% success rate
@@ -81,7 +81,7 @@ That's it. You're saving tokens.
 
 ## What just happened?
 
-When you ran `zipline init`, it created:
+When you ran `claude0 init`, it created:
 
 ### 1. Six starter rules
 - `typescript-style.md` — TypeScript conventions
@@ -98,7 +98,7 @@ Decides which model to use:
 - Hard problems → Opus (powerful)
 
 ### 3. A hook
-Connects to Claude Code so zipline runs automatically on every prompt.
+Connects to Claude Code so claude0 runs automatically on every prompt.
 
 ### 4. A log
 Every run gets recorded: tokens saved, model used, pass/fail.
@@ -107,7 +107,7 @@ Every run gets recorded: tokens saved, model used, pass/fail.
 
 ## How it works
 
-**Without zipline:**
+**Without claude0:**
 ```
 You: "fix the auth bug"
 
@@ -122,7 +122,7 @@ Claude receives your ENTIRE CLAUDE.md:
 2,800 tokens
 ```
 
-**With zipline:**
+**With claude0:**
 ```
 You: "fix the auth bug"
 
@@ -134,7 +134,7 @@ Claude receives only what matters:
 920 tokens (67% saved)
 ```
 
-Zipline reads your prompt, figures out you're fixing a bug (not working with Git or React), and skips the irrelevant rules.
+ClaudeZero reads your prompt, figures out you're fixing a bug (not working with Git or React), and skips the irrelevant rules.
 
 **You never tell it what to skip. It figures it out.**
 
@@ -144,7 +144,7 @@ Zipline reads your prompt, figures out you're fixing a bug (not working with Git
 
 Run:
 ```bash
-zipline expert
+claude0 expert
 ```
 
 This unlocks:
@@ -158,17 +158,17 @@ This unlocks:
 
 ## Common questions
 
-**Q: Do I need to do anything after `zipline init`?**  
+**Q: Do I need to do anything after `claude0 init`?**  
 A: No. Just use Claude Code normally.
 
 **Q: Will it break my workflow?**  
-A: No. If zipline fails for any reason, it exits cleanly and your prompt goes through unchanged.
+A: No. If claude0 fails for any reason, it exits cleanly and your prompt goes through unchanged.
 
 **Q: How do I know it's working?**  
-A: Run `zipline status` anytime.
+A: Run `claude0 status` anytime.
 
 **Q: Can I turn it off?**  
-A: Yes. `zipline uninstall` removes everything.
+A: Yes. `claude0 uninstall` removes everything.
 
 **Q: Does it slow things down?**  
 A: No. The hook runs in under 1ms. Claude actually responds *faster* because there's less to process.
@@ -183,6 +183,6 @@ Go use Claude Code and save tokens.
 
 <br/>
 
-**[Read full docs](README.md)** · **[⭐️ Star this repo](https://github.com/lcosent/zipline)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20zipline&url=https://github.com/lcosent/zipline)**
+**[Read full docs](README.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
 
 </div>

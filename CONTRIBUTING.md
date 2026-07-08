@@ -1,10 +1,10 @@
 <div align="center">
 
-# Contributing to Zipline
+# Contributing to ClaudeZero
 
-Thank you for your interest in making zipline better.
+Thank you for your interest in making claude0 better.
 
-**[Report Bug](https://github.com/lcosent/zipline/issues)** · **[Request Feature](https://github.com/lcosent/zipline/issues)** · **[Discussions](https://github.com/lcosent/zipline/discussions)**
+**[Report Bug](https://github.com/lcosent/claude0/issues)** · **[Request Feature](https://github.com/lcosent/claude0/issues)** · **[Discussions](https://github.com/lcosent/claude0/discussions)**
 
 </div>
 
@@ -27,7 +27,7 @@ Create an issue with:
 - **Steps to reproduce** with minimal example
 - **Expected behavior** vs **actual behavior**
 - **Environment details** (OS, versions)
-- **Relevant logs** from `.zipline/ledger.jsonl` if applicable
+- **Relevant logs** from `.claude0/ledger.jsonl` if applicable
 
 ### Suggesting Features
 
@@ -51,8 +51,8 @@ Feature requests should include:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/zipline.git
-cd zipline
+git clone https://github.com/YOUR_USERNAME/claude0.git
+cd claude0
 
 # Install dependencies
 npm install
@@ -99,7 +99,7 @@ refactor: Extract tier selection to separate function
 
 ### Test Structure
 - Each milestone has a test file: `src/m1-test.ts`, `src/m2-test.ts`, etc.
-- Tests use the existing `.zipline/` fixtures in the repo
+- Tests use the existing `.claude0/` fixtures in the repo
 - Tests must be deterministic and self-contained
 
 ### Writing Tests
@@ -128,13 +128,13 @@ function main() {
 ```bash
 npm test              # All milestones
 npm run test:m1       # Specific milestone
-npm run test:m0       # Autonomy zipline
+npm run test:m0       # Autonomy claude0
 ```
 
 ## Project Structure
 
 ```
-zipline/
+claude0/
 ├─ src/
 │  ├─ cli.ts          # CLI entrypoint
 │  ├─ compiler.ts     # M1: Context compiler
@@ -145,7 +145,7 @@ zipline/
 │  ├─ report.ts       # M6: Token dashboard
 │  ├─ paths.ts        # Path resolution
 │  └─ *-test.ts       # Milestone tests
-├─ .zipline/
+├─ .claude0/
 │  ├─ rules/          # Sample rules
 │  └─ policy.yaml     # Default policy
 ├─ DESIGN.md          # Architecture decisions
@@ -232,7 +232,7 @@ export const LedgerEntry = z.object({
 
 ## Questions?
 
-**[Open an Issue](https://github.com/lcosent/zipline/issues)** · **[Start a Discussion](https://github.com/lcosent/zipline/discussions)** · **[Security Policy](SECURITY.md)**
+**[Open an Issue](https://github.com/lcosent/claude0/issues)** · **[Start a Discussion](https://github.com/lcosent/claude0/discussions)** · **[Security Policy](SECURITY.md)**
 
 <br/>
 
@@ -240,6 +240,6 @@ export const LedgerEntry = z.object({
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
 
-**[⬆ back to top](#contributing-to-zipline)**
+**[⬆ back to top](#contributing-to-claude0)**
 
 </div>

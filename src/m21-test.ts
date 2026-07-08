@@ -61,8 +61,8 @@ gate(
 );
 
 // 4. Effort lands in the ledger (additive field, old entries still parse).
-const tmp = path.join(os.tmpdir(), `zipline-m21-${process.pid}`);
-fs.mkdirSync(path.join(tmp, ".zipline"), { recursive: true });
+const tmp = path.join(os.tmpdir(), `claude0-m21-${process.pid}`);
+fs.mkdirSync(path.join(tmp, ".claude0"), { recursive: true });
 appendLedger(
   {
     ts: new Date().toISOString(),
@@ -86,7 +86,7 @@ appendLedger(
 );
 // A pre-M21 line (no effort field at all) must still parse.
 fs.appendFileSync(
-  path.join(tmp, ".zipline", "ledger.jsonl"),
+  path.join(tmp, ".claude0", "ledger.jsonl"),
   JSON.stringify({
     ts: "2026-01-01T00:00:00Z",
     milestone: "old",

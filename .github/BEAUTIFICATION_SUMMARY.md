@@ -7,7 +7,7 @@
 - ✅ Restructured README with visual hierarchy (tables, centered sections)
 - ✅ Added collapsible FAQ sections (progressive disclosure)
 - ✅ Improved badge layout with better colors and spacing
-- ✅ Added visual comparison table (with/without zipline)
+- ✅ Added visual comparison table (with/without claude0)
 - ✅ Enhanced QUICKSTART.md with better formatting
 
 ### 2. Call-to-Actions (CTAs)
@@ -79,7 +79,7 @@
 5. **Social Preview Image** (1280x640px)
    Create image with:
    - Clean white or gradient background
-   - Large "⚡️ zipline" title
+   - Large "⚡️ claude0" title
    - Tagline: "Cut your Claude Code bill by 65%"
    - Minimal, high-contrast design
    - Consider using [Figma](https://figma.com) or [Canva](https://canva.com)
@@ -170,14 +170,14 @@
 
 ## ✨ Next Enhancement Ideas
 
-1. **Add screenshots** - Show `zipline status` output
+1. **Add screenshots** - Show `claude0 status` output
 2. **Create demo GIF** - Show installation and first run
 3. **Add testimonials** - User quotes about savings
 4. **Create logo** - Simple, recognizable icon
 5. **Add "Used by" section** - If projects adopt it
 6. **Create comparison chart** - vs other optimization tools
 7. **Add video walkthrough** - YouTube embed
-8. **Create badge** - "Optimized with Zipline" for users
+8. **Create badge** - "Optimized with ClaudeZero" for users
 
 ---
 

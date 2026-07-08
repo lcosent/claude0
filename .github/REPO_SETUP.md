@@ -24,12 +24,12 @@ Add these topics to your GitHub repository for better discoverability:
 ## Social Preview Image
 Create a 1280x640px image with:
 - Clean white/gradient background (Apple style)
-- Large "⚡️ zipline" title
+- Large "⚡️ claude0" title
 - Tagline: "Cut your Claude Code bill by 65%"
 - Minimal, high-contrast design
 
 ## About Section
-- ✅ Website: https://github.com/lcosent/zipline
+- ✅ Website: https://github.com/lcosent/claude0
 - ✅ Topics: (see list above)
 - ✅ Enable: Issues, Discussions, Sponsorships
 - ✅ Description: (see above)

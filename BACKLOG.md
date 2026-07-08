@@ -1,4 +1,4 @@
-# Zipline Backlog
+# ClaudeZero Backlog
 
 Ordered, data-driven milestone queue. `/loop` reads this top-down, picks the
 first item whose status is `TODO` and whose `blocked-by` are all `DONE`, executes
@@ -29,16 +29,16 @@ condition for the item (no "looks good").
 
 ## M11 — PostToolUse compression of real Bash output
 
-- **status:** DONE — `zipline compress-output` reads PostToolUse JSON, compresses
+- **status:** DONE — `claude0 compress-output` reads PostToolUse JSON, compresses
   `tool_response.stdout` via M8 native, emits `updatedToolOutput` (replaces the
   model's view; side effects already ran). init registers a Bash-matched
-  PostToolUse hook; uninstall strips both zipline hooks, preserves user hooks.
+  PostToolUse hook; uninstall strips both claude0 hooks, preserves user hooks.
   m11-test 7/7, 62.7% reduction; e2e envelope verified.
 - **blocked-by:** —
 
 ## M12 — terse-output live auto-disable
 
-- **status:** DONE — `resolveAvailability` overlays disable state so `zipline
+- **status:** DONE — `resolveAvailability` overlays disable state so `claude0
   doctor` shows `disabled` (fixed the M8 gap where doctor ignored shouldDisable);
   terse wired through `runCapability` in the loop. m12-test 6/6; doctor live-verified
   to show `✗ terse-output auto-disabled` on net-negative history. True output-delta
@@ -49,24 +49,24 @@ condition for the item (no "looks good").
 - **build:** Log terse's real output-token delta once M10 lands; feed it into the
   existing `shouldDisable` window.
 - **success:** `npm run test:m12` passes — a seeded run of net-negative terse
-  deltas flips terse to `disabled` in `zipline doctor`.
+  deltas flips terse to `disabled` in `claude0 doctor`.
 
 ## M13 — Cross-project policy sync
 
-- **status:** DONE — `zipline policy pull|push` against a central store
-  (`$ZIPLINE_POLICY_REMOTE` or `~/.zipline/policy.yaml`). push=local wins,
+- **status:** DONE — `claude0 policy pull|push` against a central store
+  (`$ZIPLINE_POLICY_REMOTE` or `~/.claude0/policy.yaml`). push=local wins,
   pull=repo overrides preserved; provenance logged. Flat parser, no YAML dep.
   m13-test 8/8 (round-trip, override survives, provenance).
 - **blocked-by:** —
 - **why:** M7 proved a shared policy generalizes; there's no transport yet.
-- **build:** `zipline policy pull|push` against a versioned central policy file
+- **build:** `claude0 policy pull|push` against a versioned central policy file
   (local path or git remote); per-repo overrides layered on top; provenance logged.
 - **success:** `npm run test:m13` passes — push then pull round-trips a policy;
   a per-repo override survives a pull; provenance recorded in the ledger.
 
 ## M14 — Continuous-learning pipeline
 
-- **status:** DONE — `zipline learn` mines the ledger → deterministic rule
+- **status:** DONE — `claude0 learn` mines the ledger → deterministic rule
   proposals: DE-PRIORITIZE (excluded ≥80%, 0 failure cost) and PIN (absence
   fail-rate exceeds presence by ≥30pts). Proposal-only; writes nothing without
   `--apply` (verified rules/ unchanged). m14-test 7/7.
@@ -115,7 +115,7 @@ condition for the item (no "looks good").
 ## M18 — Optional gstack integration (orchestration leaves)
 
 - **status:** DONE — `RepoEnv.gstackInstalled` detects gstack (`$GSTACK_HOME` or
-  `~/.claude/skills/gstack`); `zipline doctor` shows an Orchestration section;
+  `~/.claude/skills/gstack`); `claude0 doctor` shows an Orchestration section;
   detected-never-invoked, absence degrades honestly. m18-test 5/5.
 - **blocked-by:** —
 
@@ -131,13 +131,13 @@ condition for the item (no "looks good").
 ## Done
 
 - M0-M7 — core spine (autonomy, compiler, router, contracts, loop, learning, dashboard, cross-project).
-- M8 — integrations layer (5 native capabilities + `zipline doctor`) + connect-the-pipe intercept.
+- M8 — integrations layer (5 native capabilities + `claude0 doctor`) + connect-the-pipe intercept.
 - M9 — docs (Mermaid architecture diagrams).
 - M10 — real LLM calls via claude CLI subscription (no API key) + deterministic simulate stub.
-- M11 — PostToolUse compression of real Bash output (`zipline compress-output`).
-- M12 — terse-output auto-disable, observable in `zipline doctor`.
-- M13 — cross-project policy sync (`zipline policy pull/push`).
-- M14 — continuous-learning pipeline (`zipline learn`, proposal-only).
+- M11 — PostToolUse compression of real Bash output (`claude0 compress-output`).
+- M12 — terse-output auto-disable, observable in `claude0 doctor`.
+- M13 — cross-project policy sync (`claude0 policy pull/push`).
+- M14 — continuous-learning pipeline (`claude0 learn`, proposal-only).
 - M15 — live-path validation gate (real subscription call, opt-in via ZIPLINE_LIVE=1).
 - M16 — stable public API surface + versioned ledger schema (v1 gate).
 - M17 — terse-output A/B output-delta measurement (v1 gate).

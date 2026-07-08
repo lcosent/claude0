@@ -16,7 +16,7 @@ Fixes #(issue number)
 
 ## Milestones Affected
 <!-- Check all that apply -->
-- [ ] M0: Autonomy zipline
+- [ ] M0: Autonomy claude0
 - [ ] M1: Compiler
 - [ ] M2: Router
 - [ ] M3: Contracts
@@ -38,10 +38,10 @@ npm test output:
 
 ### Manual Testing
 <!-- Describe manual testing steps -->
-- [ ] Tested `zipline init`
-- [ ] Tested `zipline report`
-- [ ] Tested `zipline compile`
-- [ ] Tested `zipline uninstall`
+- [ ] Tested `claude0 init`
+- [ ] Tested `claude0 report`
+- [ ] Tested `claude0 compile`
+- [ ] Tested `claude0 uninstall`
 - [ ] Other: [describe]
 
 ## Checklist

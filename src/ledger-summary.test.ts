@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { summarize } from "./ledger-summary";
 
-const LEDGER_PATH = path.join(process.cwd(), ".zipline", "ledger.jsonl");
+const LEDGER_PATH = path.join(process.cwd(), ".claude0", "ledger.jsonl");
 
 function seed() {
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });

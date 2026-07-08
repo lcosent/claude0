@@ -2,9 +2,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import {
-  findZiplineRoot,
-  requireZiplineRoot,
-  ziplineDir,
+  findClaudeZeroRoot,
+  requireClaudeZeroRoot,
+  claude0Dir,
   rulesDir,
   policyPath,
   claudeSettingsPath,
@@ -34,23 +34,23 @@ import { printBloatReport, autoFixBloat } from "./bloat-detector";
 
 function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
   const targetDir = opts.global
-    ? path.join(process.env.HOME || "~", ".zipline")
+    ? path.join(process.env.HOME || "~", ".claude0")
     : process.cwd();
 
-  const ziplineDirPath = opts.global ? targetDir : ziplineDir(targetDir);
+  const claude0DirPath = opts.global ? targetDir : claude0Dir(targetDir);
   const rulesDirPath = opts.global
     ? path.join(targetDir, "rules")
     : rulesDir(targetDir);
 
-  if (fs.existsSync(ziplineDirPath)) {
-    console.log(`Already initialized: ${ziplineDirPath}`);
+  if (fs.existsSync(claude0DirPath)) {
+    console.log(`Already initialized: ${claude0DirPath}`);
     process.exit(0);
   }
 
   const mode = opts.expert ? "expert" : "turnkey";
 
   // Create directory structure
-  fs.mkdirSync(ziplineDirPath, { recursive: true });
+  fs.mkdirSync(claude0DirPath, { recursive: true });
   fs.mkdirSync(rulesDirPath, { recursive: true });
 
   // Write sample rules
@@ -73,7 +73,7 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
   // Create empty ledger
   const ledgerFile = opts.global
     ? path.join(targetDir, "ledger.jsonl")
-    : path.join(ziplineDirPath, "ledger.jsonl");
+    : path.join(claude0DirPath, "ledger.jsonl");
   fs.writeFileSync(ledgerFile, "");
 
   if (!opts.global) {
@@ -98,35 +98,35 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
     // Write README
     fs.writeFileSync(path.join(targetDir, "ZIPLINE_README.md"), README);
 
-    console.log(`Zipline initialized in ${targetDir} (${mode} mode)`);
+    console.log(`ClaudeZero initialized in ${targetDir} (${mode} mode)`);
     console.log(`\nCreated:`);
-    console.log(`  .zipline/rules/        (${Object.keys(SAMPLE_RULES).length} sample rules)`);
-    console.log(`  .zipline/policy.yaml   (routing policy${mode === "turnkey" ? " — managed" : ""})`);
-    console.log(`  .zipline/mode.json     (${mode} mode)`);
-    console.log(`  .zipline/ledger.jsonl  (empty log)`);
+    console.log(`  .claude0/rules/        (${Object.keys(SAMPLE_RULES).length} sample rules)`);
+    console.log(`  .claude0/policy.yaml   (routing policy${mode === "turnkey" ? " — managed" : ""})`);
+    console.log(`  .claude0/mode.json     (${mode} mode)`);
+    console.log(`  .claude0/ledger.jsonl  (empty log)`);
     console.log(`  .claude/settings.json  (hook configured)`);
     console.log(`  ZIPLINE_README.md      (usage guide)`);
     if (mode === "turnkey") {
-      console.log(`\nNext: Just use Claude Code normally. Zipline works transparently.`);
-      console.log(`Run 'zipline status' to see savings, 'zipline expert' for advanced features.`);
+      console.log(`\nNext: Just use Claude Code normally. ClaudeZero works transparently.`);
+      console.log(`Run 'claude0 status' to see savings, 'claude0 expert' for advanced features.`);
     } else {
       console.log(`\nExpert mode enabled — full control over routing policy and advanced commands.`);
-      console.log(`Run 'zipline doctor' to check integrations, 'zipline --help' for all commands.`);
+      console.log(`Run 'claude0 doctor' to check integrations, 'claude0 --help' for all commands.`);
     }
   } else {
-    console.log(`Global zipline initialized in ${targetDir}`);
+    console.log(`Global claude0 initialized in ${targetDir}`);
     console.log(`\nCreated:`);
-    console.log(`  ~/.zipline/rules/      (${Object.keys(SAMPLE_RULES).length} sample rules)`);
-    console.log(`  ~/.zipline/policy.yaml (routing policy)`);
-    console.log(`  ~/.zipline/ledger.jsonl (empty log)`);
+    console.log(`  ~/.claude0/rules/      (${Object.keys(SAMPLE_RULES).length} sample rules)`);
+    console.log(`  ~/.claude0/policy.yaml (routing policy)`);
+    console.log(`  ~/.claude0/ledger.jsonl (empty log)`);
     console.log(`\nNote: Global mode creates shared rules/policy but no project hooks.`);
   }
 }
 
 function reportCommand(opts: { global?: boolean } = {}) {
   const root = opts.global
-    ? path.join(process.env.HOME || "~", ".zipline")
-    : requireZiplineRoot();
+    ? path.join(process.env.HOME || "~", ".claude0")
+    : requireClaudeZeroRoot();
 
   const entries = readLedger(root);
   if (entries.length === 0) {
@@ -142,7 +142,7 @@ function reportCommand(opts: { global?: boolean } = {}) {
         100
       : 0;
 
-  console.log(`Zipline Report (${opts.global ? "global" : root})`);
+  console.log(`ClaudeZero Report (${opts.global ? "global" : root})`);
   console.log(`${"=".repeat(60)}`);
   console.log(`Total runs:       ${report.totalRuns}`);
   console.log(
@@ -175,7 +175,7 @@ function reportCommand(opts: { global?: boolean } = {}) {
 }
 
 function compileCommand(objective: string, tags: string[]) {
-  const root = requireZiplineRoot();
+  const root = requireClaudeZeroRoot();
 
   const fullBundle = fullContextBundle(objective, root);
   const compiledBundle = compile(objective, tags, tags, root);
@@ -195,19 +195,19 @@ function compileCommand(objective: string, tags: string[]) {
 
 function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
   const targetDir = opts.global
-    ? path.join(process.env.HOME || "~", ".zipline")
+    ? path.join(process.env.HOME || "~", ".claude0")
     : process.cwd();
 
-  const ziplineDirPath = opts.global ? targetDir : ziplineDir(targetDir);
+  const claude0DirPath = opts.global ? targetDir : claude0Dir(targetDir);
 
-  if (!fs.existsSync(ziplineDirPath)) {
-    console.error(`Zipline not initialized in ${targetDir}`);
+  if (!fs.existsSync(claude0DirPath)) {
+    console.error(`ClaudeZero not initialized in ${targetDir}`);
     process.exit(1);
   }
 
   // Warn if ledger has data
   if (!opts.global) {
-    const ledgerFile = path.join(ziplineDirPath, "ledger.jsonl");
+    const ledgerFile = path.join(claude0DirPath, "ledger.jsonl");
     if (fs.existsSync(ledgerFile)) {
       const lines = fs.readFileSync(ledgerFile, "utf8").split("\n").filter((l) => l.trim());
       if (lines.length > 0 && !opts.force) {
@@ -218,9 +218,9 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
     }
   }
 
-  // Remove .zipline/
-  fs.rmSync(ziplineDirPath, { recursive: true, force: true });
-  console.log(`Removed: ${ziplineDirPath}`);
+  // Remove .claude0/
+  fs.rmSync(claude0DirPath, { recursive: true, force: true });
+  console.log(`Removed: ${claude0DirPath}`);
 
   if (!opts.global) {
     // Remove hook from .claude/settings.json
@@ -228,8 +228,8 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
     if (fs.existsSync(settingsFile)) {
       try {
         const settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-        // Strip only zipline's own command entries, preserving user-added hooks.
-        // Covers both hooks zipline registers (intercept + compress-output).
+        // Strip only claude0's own command entries, preserving user-added hooks.
+        // Covers both hooks claude0 registers (intercept + compress-output).
         const ourCommands = [HOOK_COMMAND, POST_TOOL_COMMAND];
         let changed = false;
         for (const event of [HOOK_EVENT, POST_TOOL_EVENT]) {
@@ -270,7 +270,7 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
     }
   }
 
-  console.log(`\nZipline uninstalled from ${opts.global ? "global" : targetDir}`);
+  console.log(`\nClaudeZero uninstalled from ${opts.global ? "global" : targetDir}`);
 }
 
 function readStdin(): Promise<string> {
@@ -294,11 +294,11 @@ function interceptCommand() {
 }
 
 function statusCommand() {
-  const root = requireZiplineRoot();
+  const root = requireClaudeZeroRoot();
   const entries = readLedger(root);
 
   if (entries.length === 0) {
-    console.log("No activity yet. Use Claude Code normally — zipline will start logging.");
+    console.log("No activity yet. Use Claude Code normally — claude0 will start logging.");
     return;
   }
 
@@ -311,7 +311,7 @@ function statusCommand() {
       : 0;
   const passRate = ((report.passCount / report.totalRuns) * 100).toFixed(1);
 
-  console.log("Zipline Status");
+  console.log("ClaudeZero Status");
   console.log("─".repeat(33));
   console.log(`✓ Saving ${totalSavings.toFixed(1)}% on average`);
   console.log(`✓ ${report.totalRuns} runs, ${passRate}% success rate`);
@@ -327,14 +327,14 @@ function statusCommand() {
 
   const mode = readMode(root).mode;
   if (mode === "turnkey") {
-    console.log("Run 'zipline expert' for advanced controls.");
+    console.log("Run 'claude0 expert' for advanced controls.");
   } else {
-    console.log("Run 'zipline report' for detailed metrics.");
+    console.log("Run 'claude0 report' for detailed metrics.");
   }
 }
 
 function expertCommand() {
-  const root = requireZiplineRoot();
+  const root = requireClaudeZeroRoot();
   const current = readMode(root);
 
   if (current.mode === "expert") {
@@ -364,13 +364,13 @@ function expertCommand() {
   console.log("  • Full control over routing and tuning");
   console.log("");
   console.log("Next steps:");
-  console.log("  zipline doctor     — Check integrations");
-  console.log("  zipline report     — Detailed metrics");
-  console.log("  zipline --help     — See all commands");
+  console.log("  claude0 doctor     — Check integrations");
+  console.log("  claude0 report     — Detailed metrics");
+  console.log("  claude0 --help     — See all commands");
 }
 
 function turnkeyCommand() {
-  const root = requireZiplineRoot();
+  const root = requireClaudeZeroRoot();
   const current = readMode(root);
 
   if (current.mode === "turnkey") {
@@ -395,18 +395,18 @@ function turnkeyCommand() {
   console.log("✓ Downgraded to turnkey mode");
   console.log("");
   console.log("Changes:");
-  console.log("  • policy.yaml locked (managed by zipline)");
+  console.log("  • policy.yaml locked (managed by claude0)");
   console.log("  • Advanced commands hidden from help");
   console.log("  • Simplified command interface");
   console.log("");
-  console.log("Run 'zipline status' to check how it's working.");
+  console.log("Run 'claude0 status' to check how it's working.");
 }
 
 function doctorCommand() {
-  const root = requireZiplineRoot();
+  const root = requireClaudeZeroRoot();
   const env = detectRepoEnv(root);
 
-  console.log("Zipline Integrations");
+  console.log("ClaudeZero Integrations");
   console.log("─".repeat(52));
   for (const cap of CAPABILITIES) {
     const a = resolveAvailability(cap, root, env);
@@ -419,7 +419,7 @@ function doctorCommand() {
 
   // Capability net-delta over recent ledger entries. This is the CAPABILITY
   // delta only (input tokens before vs after each capability transform) — it is
-  // NOT the M1 compiler savings (baseline_tokens vs tokens_in), which `zipline
+  // NOT the M1 compiler savings (baseline_tokens vs tokens_in), which `claude0
   // report` shows. Kept separate so the two are never double-counted.
   const caps = readLedger(root)
     .flatMap((e) => e.capabilities ?? [])
@@ -431,14 +431,14 @@ function doctorCommand() {
     const pct = before > 0 ? (((before - after) / before) * 100).toFixed(1) : "0";
     console.log("");
     console.log(
-      `Capability net delta (last ${recent.length} runs): ${pct}%  [capability transforms only; separate from compiler savings in 'zipline report']`
+      `Capability net delta (last ${recent.length} runs): ${pct}%  [capability transforms only; separate from compiler savings in 'claude0 report']`
     );
   } else {
     console.log("");
     console.log("Capability net delta: no capability runs logged yet.");
   }
 
-  // Optional orchestration layer (gstack). Detected, never invoked — zipline's
+  // Optional orchestration layer (gstack). Detected, never invoked — claude0's
   // job is token accounting; gstack owns multi-agent orchestration leaves.
   // Honest degradation: if it isn't installed, we say so and nothing breaks.
   console.log("");
@@ -483,7 +483,7 @@ function main() {
 
       case "compile": {
         if (args.length < 2) {
-          console.error('Usage: zipline compile "objective" tag1,tag2,tag3');
+          console.error('Usage: claude0 compile "objective" tag1,tag2,tag3');
           process.exit(1);
         }
         const objective = args[0];
@@ -504,7 +504,7 @@ function main() {
         break;
 
       case "policy": {
-        const root = requireZiplineRoot();
+        const root = requireClaudeZeroRoot();
         const sub = args[0];
         if (sub === "push") {
           const r = pushPolicy(root);
@@ -516,7 +516,7 @@ function main() {
           console.log(`Updated ${r.changed.length} step(s): ${r.changed.join(", ") || "none"}`);
           console.log(`Per-repo overrides preserved.`);
         } else {
-          console.error("Usage: zipline policy <pull|push>");
+          console.error("Usage: claude0 policy <pull|push>");
           console.error(`Central store: ${centralPolicyPath()}`);
           process.exit(1);
         }
@@ -524,7 +524,7 @@ function main() {
       }
 
       case "learn": {
-        const root = requireZiplineRoot();
+        const root = requireClaudeZeroRoot();
         const proposals = proposeChanges(readLedger(root));
         console.log(renderProposals(proposals));
         if (args.includes("--apply")) {
@@ -533,7 +533,7 @@ function main() {
           // the reviewable artifact; auto-writing rules is deferred.)
           console.log(
             `\n--apply given: ${proposals.length} change(s) staged for approval. ` +
-              `Review above, then edit .zipline/rules/ accordingly. ` +
+              `Review above, then edit .claude0/rules/ accordingly. ` +
               `(Automatic rule rewriting is deferred; proposals stay human-approved.)`
           );
         }
@@ -549,7 +549,7 @@ function main() {
         break;
 
       case "bloat": {
-        const root = requireZiplineRoot();
+        const root = requireClaudeZeroRoot();
         if (args.includes("--fix")) {
           const dryRun = args.includes("--dry-run");
           console.log(dryRun ? "DRY RUN — no files will be modified\n" : "");
@@ -567,53 +567,53 @@ function main() {
       }
 
       default: {
-        // Detect mode for help text (if in a zipline repo)
-        const root = findZiplineRoot();
+        // Detect mode for help text (if in a claude0 repo)
+        const root = findClaudeZeroRoot();
         const mode = root ? readMode(root).mode : "turnkey";
         const isExpert = mode === "expert";
 
         if (isExpert) {
           // Expert mode: show all commands
-          console.log(`Zipline — deterministic orchestration spine for Claude Code
+          console.log(`ClaudeZero — deterministic orchestration spine for Claude Code
 
 Usage:
-  zipline init [--expert] [--global]     Initialize .zipline/ in current dir (or ~/.zipline/)
-  zipline status                         Simple savings summary
-  zipline report [--global]              Detailed token savings and system metrics
-  zipline compile "goal" tags            Compile context bundle for a step
-  zipline doctor                         Show integrations stack + per-repo availability
-  zipline policy <pull|push>             Sync routing policy with the central store (repo overrides win)
-  zipline learn [--apply]                Propose rule changes from ledger evidence
-  zipline bloat [--fix] [--dry-run]      Detect context bloat and optionally auto-fix
-  zipline turnkey                        Switch to turnkey mode (managed policy)
-  zipline uninstall [--global] [--force] Remove .zipline/ and hooks
-  zipline intercept                      (Internal: called by Claude Code hook)
+  claude0 init [--expert] [--global]     Initialize .claude0/ in current dir (or ~/.claude0/)
+  claude0 status                         Simple savings summary
+  claude0 report [--global]              Detailed token savings and system metrics
+  claude0 compile "goal" tags            Compile context bundle for a step
+  claude0 doctor                         Show integrations stack + per-repo availability
+  claude0 policy <pull|push>             Sync routing policy with the central store (repo overrides win)
+  claude0 learn [--apply]                Propose rule changes from ledger evidence
+  claude0 bloat [--fix] [--dry-run]      Detect context bloat and optionally auto-fix
+  claude0 turnkey                        Switch to turnkey mode (managed policy)
+  claude0 uninstall [--global] [--force] Remove .claude0/ and hooks
+  claude0 intercept                      (Internal: called by Claude Code hook)
 
 Examples:
-  zipline report                         # Detailed metrics
-  zipline compile "fix auth bug" typescript,security,testing
-  zipline doctor                         # Check integrations
-  zipline learn --apply                  # Apply rule improvements
+  claude0 report                         # Detailed metrics
+  claude0 compile "fix auth bug" typescript,security,testing
+  claude0 doctor                         # Check integrations
+  claude0 learn --apply                  # Apply rule improvements
 
-After init, zipline runs transparently — just use Claude Code normally.
+After init, claude0 runs transparently — just use Claude Code normally.
 `);
         } else {
           // Turnkey mode: show only essential commands
-          console.log(`Zipline — Save 65% on Claude Code tokens, automatically
+          console.log(`ClaudeZero — Save 65% on Claude Code tokens, automatically
 
 Usage:
-  zipline init [--expert]         Set up zipline in your project
-  zipline status                  Check how much you're saving
-  zipline expert                  Unlock advanced features
-  zipline uninstall [--force]     Remove zipline
+  claude0 init [--expert]         Set up claude0 in your project
+  claude0 status                  Check how much you're saving
+  claude0 expert                  Unlock advanced features
+  claude0 uninstall [--force]     Remove claude0
 
 Examples:
-  zipline init                    # One command, fully set up
-  zipline status                  # See your savings
+  claude0 init                    # One command, fully set up
+  claude0 status                  # See your savings
 
-After init, just use Claude Code normally. Zipline works in the background.
+After init, just use Claude Code normally. ClaudeZero works in the background.
 
-Want more control? Run 'zipline expert' for advanced commands.
+Want more control? Run 'claude0 expert' for advanced commands.
 `);
         }
         process.exit(command ? 1 : 0);

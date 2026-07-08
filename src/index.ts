@@ -1,4 +1,4 @@
-// Public API barrel — the STABLE surface zipline promises for v1.0.0.
+// Public API barrel — the STABLE surface claude0 promises for v1.0.0.
 //
 // Anything re-exported here is covered by semver: it won't be removed or have
 // its type narrowed within the 1.x line without a major bump. Internals not
@@ -7,7 +7,7 @@
 // are opting out of that stability guarantee.
 //
 // package.json `main` points at the compiled dist/index.js, so
-// `import { ... } from "zipline"` resolves here.
+// `import { ... } from "claude0"` resolves here.
 
 // ── Compiler: rule loading + context bundling ────────────────────────────
 export type { Rule, Bundle } from "./compiler";
@@ -94,8 +94,8 @@ export {
   BUDGET_HALT_PREFIX,
 } from "./budget";
 
-// ── Paths: zipline-root discovery ────────────────────────────────────────
-export { findZiplineRoot, requireZiplineRoot } from "./paths";
+// ── Paths: claude0-root discovery ────────────────────────────────────────
+export { findClaudeZeroRoot, requireClaudeZeroRoot } from "./paths";
 
 /**
  * The public API version. Tracks the package major/minor; bump in lockstep

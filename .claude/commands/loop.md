@@ -5,7 +5,7 @@ argument-hint: "[count | milestone-id | 'until <condition>']  (default: 1)"
 
 # /loop — autonomous milestone executor
 
-You are running the zipline build loop. **Do not ask the user what to do next.**
+You are running the claude0 build loop. **Do not ask the user what to do next.**
 The backlog decides; you execute. The only reasons to stop and surface to the
 user are the hard-stops listed below.
 
@@ -69,7 +69,7 @@ stop. Do not solicit the next task; the user will invoke `/loop` again or set a
 ## Notes
 
 - The ledger is the source of truth for "did it work" — cite the real number.
-- Keep `.zipline/ledger.jsonl` clean of test-run rows before committing (the
+- Keep `.claude0/ledger.jsonl` clean of test-run rows before committing (the
   milestone tests append; strip `"milestone":"<mN>"`/`"intercept"` rows added by
   a test run, as prior milestones did).
 - Never mark an item DONE with failing tests, a partial impl, or an unresolved error.

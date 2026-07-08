@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { encode } from "gpt-tokenizer";
-import { requireZiplineRoot, rulesDir } from "./paths";
+import { requireClaudeZeroRoot, rulesDir } from "./paths";
 
 export interface Rule {
   file: string;
@@ -17,7 +17,7 @@ export interface Bundle {
 }
 
 export function loadRules(repoRoot?: string): Rule[] {
-  const root = repoRoot ?? requireZiplineRoot();
+  const root = repoRoot ?? requireClaudeZeroRoot();
   const rulesDirectory = rulesDir(root);
 
   if (!fs.existsSync(rulesDirectory)) {

@@ -8,18 +8,18 @@
 
 ## Problem
 
-Zipline's savings can silently erode over time due to four bloat vectors:
+ClaudeZero's savings can silently erode over time due to four bloat vectors:
 
 1. **Structural bloat** — Rules growing without bound, redundant content across rules, overly broad tag matching causing over-selection
 2. **Cache inefficiency** — Repeated identical compilations that should be cached but aren't, leading to wasted recomputation
 3. **Compression degradation** — Output compression failing to fire or delivering shrinking net savings over time
 4. **Escalation spirals** — Steps that perpetually escalate tiers without ever settling, burning context & cost without learning
 
-Without detection, these issues accumulate invisibly until zipline's 60%+ savings drop to 20% or less.
+Without detection, these issues accumulate invisibly until claude0's 60%+ savings drop to 20% or less.
 
 ## Solution
 
-A diagnostic command `zipline bloat` that:
+A diagnostic command `claude0 bloat` that:
 - Scans the ledger and rules directory (cheap: one read each)
 - Detects all four bloat vectors with concrete thresholds
 - Produces actionable recommendations (which rule to split, which cache to tune, which step to cap)
@@ -49,7 +49,7 @@ Never applied without explicit `--fix` flag. Dry-run mode (`--dry-run`) previews
 src/
   bloat-detector.ts    — detection logic, thresholds, auto-fix
   m24-test.ts          — 7 gates covering all vectors + auto-fix
-  cli.ts               — `zipline bloat [--fix] [--dry-run]` command
+  cli.ts               — `claude0 bloat [--fix] [--dry-run]` command
 ```
 
 ### Report Structure
@@ -84,10 +84,10 @@ All 7 gates passed (deterministic, offline):
 
 ```bash
 # Detect bloat (read-only)
-zipline bloat
+claude0 bloat
 
 # Output:
-# Zipline Bloat Report (2026-07-08T...)
+# ClaudeZero Bloat Report (2026-07-08T...)
 # Severity: WARNING
 #
 # STRUCTURAL BLOAT
@@ -116,16 +116,16 @@ zipline bloat
 #   4. Step 'build:implement-feature' spiraling (4 escalations, never settled)
 
 # Preview fixes (dry-run)
-zipline bloat --fix --dry-run
+claude0 bloat --fix --dry-run
 
 # Apply fixes
-zipline bloat --fix
+claude0 bloat --fix
 ```
 
 ## Integration
 
 Detection is passive (no hooks, no automatic runs). Recommended usage:
-- Run `zipline bloat` weekly or when savings drop unexpectedly
+- Run `claude0 bloat` weekly or when savings drop unexpectedly
 - Integrate into CI for repos with active rule churn
 - Check before and after adding new rules
 
@@ -147,4 +147,4 @@ These are valid but not urgent; detection alone closes the visibility gap.
 ---
 
 **Committed:** Detect all four bloat vectors, produce actionable recommendations, auto-fix safely.  
-**Delivered:** `zipline bloat` command with 7 passing gates, <100ms runtime, zero false positives.
+**Delivered:** `claude0 bloat` command with 7 passing gates, <100ms runtime, zero false positives.

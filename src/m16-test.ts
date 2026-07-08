@@ -38,7 +38,7 @@ const REQUIRED_EXPORTS = [
   "CAPABILITIES", "getCapability", "selectCapabilities", "detectRepoEnv",
   "runCapability", "resolveAvailability", "shouldDisable", "netDelta",
   // paths
-  "findZiplineRoot", "requireZiplineRoot",
+  "findClaudeZeroRoot", "requireClaudeZeroRoot",
   // version
   "API_VERSION",
 ];
@@ -50,8 +50,8 @@ check("API_VERSION is semver", /^\d+\.\d+\.\d+$/.test(api.API_VERSION), api.API_
 check("LEDGER_SCHEMA_VERSION is a positive int", Number.isInteger(LEDGER_SCHEMA_VERSION) && LEDGER_SCHEMA_VERSION >= 1, String(LEDGER_SCHEMA_VERSION));
 
 // 3. appendLedger stamps the current schema version on every written line.
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m16-"));
-fs.mkdirSync(path.join(tmp, ".zipline"), { recursive: true });
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m16-"));
+fs.mkdirSync(path.join(tmp, ".claude0"), { recursive: true });
 const baseEntry: LedgerEntry = {
   schema: LEDGER_SCHEMA_VERSION,
   ts: "2026-01-01T00:00:00Z",
@@ -71,14 +71,14 @@ const baseEntry: LedgerEntry = {
   note: "",
 };
 appendLedger(baseEntry, tmp);
-const written = JSON.parse(fs.readFileSync(path.join(tmp, ".zipline", "ledger.jsonl"), "utf8").trim());
+const written = JSON.parse(fs.readFileSync(path.join(tmp, ".claude0", "ledger.jsonl"), "utf8").trim());
 check("appendLedger stamps schema version", written.schema === LEDGER_SCHEMA_VERSION, `schema=${written.schema}`);
 
 // 4. A pre-v1 ledger line (NO `schema` field) still parses, defaulting to v1 —
 //    the backward-compat guarantee. Write a raw legacy line and read it back.
 const legacy = { ...baseEntry };
 delete (legacy as { schema?: number }).schema;
-fs.appendFileSync(path.join(tmp, ".zipline", "ledger.jsonl"), JSON.stringify(legacy) + "\n");
+fs.appendFileSync(path.join(tmp, ".claude0", "ledger.jsonl"), JSON.stringify(legacy) + "\n");
 const roundtrip = readLedger(tmp);
 check("legacy entry (no schema) parses", roundtrip.length === 2, `${roundtrip.length} entries`);
 check("legacy entry defaults to schema v1", roundtrip[1].schema === 1, `schema=${roundtrip[1].schema}`);

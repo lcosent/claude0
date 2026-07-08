@@ -1,4 +1,4 @@
-# zipline — Design Document
+# claude0 — Design Document
 
 **Status:** Draft v0.1
 **Date:** 2026-07-02
@@ -37,14 +37,14 @@ model or router.
 ## 4. Architecture — 5 components
 
 ```
-zipline spine (TS, Claude Agent SDK)
+claude0 spine (TS, Claude Agent SDK)
   1. ROUTER     step → model (local reasoning/chat vs Opus/Sonnet, by policy)
   2. COMPILER   goal + state → minimal context bundle
   3. CONTRACTS  per-step I/O schemas (Zod) + token budgets
   4. LOOP       design → plan → milestone-gate → build → verify
   5. LEDGER     append-only run log → feeds learning
         ↓ calls out to            ↑ reads/writes
-  gstack skills, rtk, local router   .zipline/ state dir (per repo)
+  gstack skills, rtk, local router   .claude0/ state dir (per repo)
 ```
 
 ### 4.1 Router — step→model mapping
@@ -111,7 +111,7 @@ The GATE step makes "review each milestone against prior progress" mechanical.
 
 ### 4.5 Ledger + Learning
 
-Append-only `.zipline/ledger.jsonl`. Every step records:
+Append-only `.claude0/ledger.jsonl`. Every step records:
 `{step, tier, tokens_in, tokens_out, baseline_tokens, pass/fail, retries,
 rules_included[], rules_excluded[]}`.
 
@@ -132,10 +132,10 @@ Full 5-component spine is the committed scope, built in dependency order with a
 hard go/no-go gate. The gate enforces risk #3: if the Compiler doesn't measurably
 cut tokens, stop before building the Loop.
 
-1. **Compiler + Ledger** — `zipline compile <step>` → minimal bundle; ledger logs
+1. **Compiler + Ledger** — `claude0 compile <step>` → minimal bundle; ledger logs
    `tokens_in` vs `baseline_tokens`. **GO/NO-GO GATE:** median savings ≥30% across
    a real repo's steps, with no correctness regression. Fail → stop and rethink.
-2. **Router** — `zipline route <step>` → Anthropic tier + escalation + auto-demote.
+2. **Router** — `claude0 route <step>` → Anthropic tier + escalation + auto-demote.
 3. **Contracts** — Zod I/O schemas; prompts generated from contract + bundle.
 4. **Loop** — design→plan→gate→build→verify, invoking gstack skills as leaf steps.
 5. **Learning** — ledger feeds policy auto-tuning + `continuous-learning-v2`.

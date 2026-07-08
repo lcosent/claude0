@@ -5,7 +5,7 @@ import { SAMPLE_RULES } from "./init-templates";
 import { runIntercept } from "./intercept";
 import { compressToolOutput } from "./compress-output";
 
-// M19 — production-ready hook performance. Both zipline hooks sit on Claude
+// M19 — production-ready hook performance. Both claude0 hooks sit on Claude
 // Code's hot path: `intercept` gates every user prompt (UserPromptSubmit) and
 // `compress-output` gates every Bash result (PostToolUse). If either is slow,
 // the user feels it on every keystroke-to-response. This pins a hard latency
@@ -40,8 +40,8 @@ function bestOf(fn: () => void): number {
 
 // Seed a real repo with the shipped sample rules so intercept exercises the
 // actual compile/token-count path, not an empty one.
-const repo = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m19-"));
-const rulesDir = path.join(repo, ".zipline", "rules");
+const repo = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m19-"));
+const rulesDir = path.join(repo, ".claude0", "rules");
 fs.mkdirSync(rulesDir, { recursive: true });
 for (const [file, content] of Object.entries(SAMPLE_RULES)) {
   fs.writeFileSync(path.join(rulesDir, file), content);

@@ -1,22 +1,23 @@
 <div align="center">
 
-# ⚡️ zipline
+# ⚡️ claude0
+### ClaudeZero
 
 ### Cut your Claude Code bill by 65%
 
 Every time you ask Claude Code something, it reads your entire `CLAUDE.md` — even the parts that don't matter.  
-**Zipline sends only what's relevant.** You save ~65% on tokens, Claude responds faster, and nothing else changes.
+**ClaudeZero sends only what's relevant.** You save ~65% on tokens, Claude responds faster, and nothing else changes.
 
 <br/>
 
-[![npm version](https://img.shields.io/npm/v/zipline.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/zipline)
-[![Downloads](https://img.shields.io/npm/dm/zipline.svg?style=flat-square&color=green)](https://www.npmjs.com/package/zipline)
+[![npm version](https://img.shields.io/npm/v/claude0.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/claude0)
+[![Downloads](https://img.shields.io/npm/dm/claude0.svg?style=flat-square&color=green)](https://www.npmjs.com/package/claude0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 <br/>
 
-**[Get Started →](#at-a-glance)** · **[Why Zipline?](#why-it-matters)** · **[Documentation](QUICKSTART.md)**
+**[Get Started →](#at-a-glance)** · **[Why ClaudeZero?](#why-it-matters)** · **[Documentation](QUICKSTART.md)**
 
 <br/>
 
@@ -31,22 +32,22 @@ Every time you ask Claude Code something, it reads your entire `CLAUDE.md` — e
 </div>
 
 ```bash
-npm install -g zipline      # 1. Install globally
+npm install -g claude0      # 1. Install globally
 cd your-project             # 2. Go to your project
-zipline init                # 3. Set up once
+claude0 init                # 3. Set up once
 ```
 
-✨ **Done.** Keep using Claude Code exactly like before. Zipline runs invisibly.
+✨ **Done.** Keep using Claude Code exactly like before. ClaudeZero runs invisibly.
 
 <details>
 <summary><strong>Check your savings anytime</strong></summary>
 
 ```bash
-zipline status
+claude0 status
 ```
 
 ```
-Zipline Status
+ClaudeZero Status
 ─────────────────────────────────
 ✓ Saving 65.2% on average
 ✓ 47 runs, 93.6% success rate
@@ -69,7 +70,7 @@ Everything working well.
 <tr>
 <td width="50%">
 
-### ❌ Without zipline
+### ❌ Without claude0
 
 Your `CLAUDE.md` has rules for TypeScript, security, testing, Git, React, commits, and more.
 
@@ -88,9 +89,9 @@ Claude receives:
 </td>
 <td width="50%">
 
-### ✅ With zipline
+### ✅ With claude0
 
-Zipline reads your prompt, figures out what you're doing, and sends only relevant rules.
+ClaudeZero reads your prompt, figures out what you're doing, and sends only relevant rules.
 
 **Same prompt:** "fix the auth bug"
 
@@ -133,11 +134,11 @@ Every prompt. Automatically. You never see it happen.
 <tr>
 <td width="50%" align="center">
 <h3>📊 See real numbers</h3>
-<p><code>zipline status</code> shows exactly what you saved. No guessing.</p>
+<p><code>claude0 status</code> shows exactly what you saved. No guessing.</p>
 </td>
 <td width="50%" align="center">
 <h3>🔌 Zero friction</h3>
-<p>After <code>zipline init</code>, you never think about it again.</p>
+<p>After <code>claude0 init</code>, you never think about it again.</p>
 </td>
 </tr>
 </table>
@@ -146,25 +147,25 @@ Every prompt. Automatically. You never see it happen.
 
 ## What you get
 
-### After running `zipline init`:
+### After running `claude0 init`:
 
-**`.zipline/rules/`** — 6 starter rules (TypeScript, security, testing, Git, React, commits)  
-You can add your own. One file per concern. Zipline picks the right ones automatically.
+**`.claude0/rules/`** — 6 starter rules (TypeScript, security, testing, Git, React, commits)  
+You can add your own. One file per concern. ClaudeZero picks the right ones automatically.
 
-**`.zipline/policy.yaml`** — Model routing  
+**`.claude0/policy.yaml`** — Model routing  
 Maps task types to models (Haiku/Sonnet/Opus/Fable). Managed for you, but you can customize.
 
-**`.zipline/ledger.jsonl`** — Your receipt  
+**`.claude0/ledger.jsonl`** — Your receipt  
 Every run logged: tokens saved, model used, pass/fail. This is how we prove the 63.2% claim.
 
 **`.claude/settings.json`** — Hook wired  
-Zipline connects to Claude Code automatically. You don't invoke it — it just runs.
+ClaudeZero connects to Claude Code automatically. You don't invoke it — it just runs.
 
 ---
 
 ## Example: What gets sent
 
-### Without zipline
+### Without claude0
 ```
 You: "add a login form"
 
@@ -179,7 +180,7 @@ Claude receives:
 3,200 tokens
 ```
 
-### With zipline
+### With claude0
 ```
 You: "add a login form"
 
@@ -192,7 +193,7 @@ Claude receives:
 1,100 tokens (66% saved)
 ```
 
-Zipline looked at "add a login form" and skipped Git/commit rules. You never asked it to — it just knew.
+ClaudeZero looked at "add a login form" and skipped Git/commit rules. You never asked it to — it just knew.
 
 ---
 
@@ -205,8 +206,8 @@ Zipline looked at "add a login form" and skipped Git/commit rules. You never ask
 ### Core commands
 
 ```bash
-zipline init              # Set up in your project (one time)
-zipline status            # See your savings
+claude0 init              # Set up in your project (one time)
+claude0 status            # See your savings
 ```
 
 That's all most people need.
@@ -214,16 +215,16 @@ That's all most people need.
 ### Expert mode (optional)
 
 ```bash
-zipline expert            # Unlock advanced features
+claude0 expert            # Unlock advanced features
 ```
 
 Unlocks:
 - **Edit `policy.yaml`** — Change which models run when
-- **`zipline doctor`** — Diagnostics and integration status
-- **`zipline learn`** — Get suggestions to improve your rules
-- **`zipline bloat`** — Detect wasted tokens
-- **`zipline compile`** — Preview what would be sent (without spending tokens)
-- **`zipline uninstall`** — Remove cleanly
+- **`claude0 doctor`** — Diagnostics and integration status
+- **`claude0 learn`** — Get suggestions to improve your rules
+- **`claude0 bloat`** — Detect wasted tokens
+- **`claude0 compile`** — Preview what would be sent (without spending tokens)
+- **`claude0 uninstall`** — Remove cleanly
 
 **But you don't need expert mode.** The defaults work well.
 
@@ -244,11 +245,11 @@ No. The hook runs in under 1ms. You won't notice it. Claude actually responds fa
 <details>
 <summary><strong>Do I need to change how I use Claude Code?</strong></summary>
 <br/>
-No. Use it exactly like you do now. Zipline works transparently.
+No. Use it exactly like you do now. ClaudeZero works transparently.
 </details>
 
 <details>
-<summary><strong>What if zipline breaks?</strong></summary>
+<summary><strong>What if claude0 breaks?</strong></summary>
 <br/>
 It fails gracefully. If anything goes wrong, it exits cleanly and your prompt goes through unchanged.
 </details>
@@ -256,19 +257,19 @@ It fails gracefully. If anything goes wrong, it exits cleanly and your prompt go
 <details>
 <summary><strong>Can I remove it?</strong></summary>
 <br/>
-Yes. <code>zipline uninstall</code> removes everything. Warns you if you have logged data.
+Yes. <code>claude0 uninstall</code> removes everything. Warns you if you have logged data.
 </details>
 
 <details>
 <summary><strong>Does it work with my tools (rtk, MCP servers)?</strong></summary>
 <br/>
-Yes. Zipline detects and uses them automatically when present. Nothing required.
+Yes. ClaudeZero detects and uses them automatically when present. Nothing required.
 </details>
 
 <details>
 <summary><strong>How do I know it's working?</strong></summary>
 <br/>
-Run <code>zipline status</code> anytime. Shows tokens saved, success rate, model usage.
+Run <code>claude0 status</code> anytime. Shows tokens saved, success rate, model usage.
 </details>
 
 <details>
@@ -291,7 +292,7 @@ No. Works with your existing Claude Code subscription.
 
 ## Under the hood
 
-Zipline is a small TypeScript tool with five parts:
+ClaudeZero is a small TypeScript tool with five parts:
 
 1. **Compiler** — Picks only the rules that matter for your prompt
 2. **Router** — Chooses the cheapest model that can do the job
@@ -346,7 +347,7 @@ Every number backed by real test runs
 
 Run the tests yourself: `npm test`
 
-**[⭐️ Star if this helps you](https://github.com/lcosent/zipline)**
+**[⭐️ Star if this helps you](https://github.com/lcosent/claude0)**
 
 </div>
 
@@ -366,25 +367,25 @@ Run the tests yourself: `npm test`
 - Better auto-learning from ledger patterns
 - Tighter integrations with external tools
 
-**[View full roadmap →](https://github.com/lcosent/zipline/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)**
+**[View full roadmap →](https://github.com/lcosent/claude0/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)**
 
 ---
 
 ## Get started
 
 ```bash
-npm install -g zipline
+npm install -g claude0
 cd your-project
-zipline init
+claude0 init
 ```
 
 That's it. You're saving tokens.
 
 <div align="center">
 
-### Love zipline?
+### Love claude0?
 
-**[⭐️ Star this repo](https://github.com/lcosent/zipline)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20zipline&url=https://github.com/lcosent/zipline)**
+**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
 
 </div>
 
@@ -404,7 +405,7 @@ That's it. You're saving tokens.
 
 ## Join the community
 
-**[Issues](https://github.com/lcosent/zipline/issues)** · **[Discussions](https://github.com/lcosent/zipline/discussions)** · **[Contributing](CONTRIBUTING.md)**
+**[Issues](https://github.com/lcosent/claude0/issues)** · **[Discussions](https://github.com/lcosent/claude0/discussions)** · **[Contributing](CONTRIBUTING.md)**
 
 <br/>
 
@@ -414,6 +415,6 @@ That's it. You're saving tokens.
 
 **[MIT License](LICENSE)** © 2026 Luca
 
-**[⬆ back to top](#-zipline)**
+**[⬆ back to top](#-claude0)**
 
 </div>

@@ -30,8 +30,8 @@ function mcpConfigured(repoRoot: string, serverNeedle: string): boolean {
 
 /**
  * Is gstack (the orchestration skill suite) installed for this user? gstack is
- * an ORCHESTRATION LAYER, not a token-compression capability — zipline never
- * invokes it, only detects it so `zipline doctor` can surface "orchestration
+ * an ORCHESTRATION LAYER, not a token-compression capability — claude0 never
+ * invokes it, only detects it so `claude0 doctor` can surface "orchestration
  * leaves available". Honest degradation: absent → doctor says so, nothing
  * breaks. Probed at the conventional install path (`~/.claude/skills/gstack`),
  * overridable via $GSTACK_HOME for non-standard installs.

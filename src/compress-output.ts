@@ -1,9 +1,9 @@
 import { compressNative } from "./integrations/compress";
-import { findZiplineRoot } from "./paths";
+import { findClaudeZeroRoot } from "./paths";
 import { appendLedger } from "./ledger";
 import { encode } from "gpt-tokenizer";
 
-// `zipline compress-output` — PostToolUse hook body. Reads the tool-result JSON
+// `claude0 compress-output` — PostToolUse hook body. Reads the tool-result JSON
 // from stdin, compresses the Bash output via the M8 native compressor, logs the
 // real token delta, and emits the compressed text.
 //
@@ -72,8 +72,8 @@ export async function compressOutputFromStdin(readStdin: () => Promise<string>):
 
   const outcome = compressToolOutput(input);
 
-  // Log the real delta when run inside a zipline repo.
-  const root = findZiplineRoot(input.cwd ?? process.cwd());
+  // Log the real delta when run inside a claude0 repo.
+  const root = findClaudeZeroRoot(input.cwd ?? process.cwd());
   if (root && outcome.tokens_before > 0) {
     try {
       appendLedger(

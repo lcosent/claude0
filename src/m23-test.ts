@@ -19,8 +19,8 @@ function gate(name: string, cond: boolean) {
 }
 
 function tmpRoot(tag: string): string {
-  const dir = path.join(os.tmpdir(), `zipline-m23-${tag}-${process.pid}`);
-  fs.mkdirSync(path.join(dir, ".zipline"), { recursive: true });
+  const dir = path.join(os.tmpdir(), `claude0-m23-${tag}-${process.pid}`);
+  fs.mkdirSync(path.join(dir, ".claude0"), { recursive: true });
   return dir;
 }
 
@@ -82,8 +82,8 @@ async function run() {
 }
 
 // runMilestone logs via appendLedger(entry) with no repoRoot arg, which resolves
-// the root by walking up from cwd (findZiplineRoot). chdir into the temp root —
-// which has its own .zipline/ — so entries land there and never touch the real
+// the root by walking up from cwd (findClaudeZeroRoot). chdir into the temp root —
+// which has its own .claude0/ — so entries land there and never touch the real
 // project ledger. Restore cwd afterwards.
 async function runMilestoneIn(root: string, m: Milestone) {
   const prevCwd = process.cwd();

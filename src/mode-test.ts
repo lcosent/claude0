@@ -4,9 +4,9 @@ import * as os from "os";
 import { readMode, writeMode, upgradeToExpert, downgradeToTurnkey, isExpertMode } from "./mode";
 
 function testMode() {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-mode-test-"));
-  const ziplineDir = path.join(tmpDir, ".zipline");
-  fs.mkdirSync(ziplineDir, { recursive: true });
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-mode-test-"));
+  const claude0Dir = path.join(tmpDir, ".claude0");
+  fs.mkdirSync(claude0Dir, { recursive: true });
 
   console.log("Testing mode utilities...\n");
 
@@ -39,7 +39,7 @@ function testMode() {
   console.log("✓ Downgrade to turnkey mode");
 
   // Test 5: Malformed mode.json falls back to turnkey
-  fs.writeFileSync(path.join(ziplineDir, "mode.json"), "invalid json{");
+  fs.writeFileSync(path.join(claude0Dir, "mode.json"), "invalid json{");
   const fallbackMode = readMode(tmpDir);
   console.assert(fallbackMode.mode === "turnkey", "Malformed JSON should fall back to turnkey");
   console.log("✓ Malformed JSON falls back to turnkey");

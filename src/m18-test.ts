@@ -4,7 +4,7 @@ import * as path from "path";
 import { detectRepoEnv, clearDetectCache } from "./integrations";
 
 // M18 — optional gstack integration (orchestration leaves). gstack is an
-// orchestration layer zipline DETECTS but never invokes. The guarantee is
+// orchestration layer claude0 DETECTS but never invokes. The guarantee is
 // honest degradation: present → surfaced; absent → surfaced as absent; never a
 // hard dependency, never a throw. Detection is driven by the real filesystem
 // ($GSTACK_HOME override or ~/.claude/skills/gstack).
@@ -16,15 +16,15 @@ function check(name: string, cond: boolean, detail = "") {
   cond ? pass++ : fail++;
 }
 
-const repo = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m18-repo-"));
-fs.mkdirSync(path.join(repo, ".zipline"), { recursive: true });
+const repo = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m18-repo-"));
+fs.mkdirSync(path.join(repo, ".claude0"), { recursive: true });
 
 const savedGstackHome = process.env.GSTACK_HOME;
 const savedHome = process.env.HOME;
 
 // Isolate HOME so the developer's real ~/.claude/skills/gstack can't leak in
 // and make the "absent" case flaky.
-const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m18-home-"));
+const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m18-home-"));
 process.env.HOME = fakeHome;
 
 // 1. gstack ABSENT (no GSTACK_HOME, empty HOME) → detected false, no throw.
@@ -41,7 +41,7 @@ check("absent gstack never throws", absentOk);
 check("absent gstack → gstackInstalled false", envAbsent?.gstackInstalled === false);
 
 // 2. gstack PRESENT via $GSTACK_HOME → detected true.
-const gstackDir = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m18-gstack-"));
+const gstackDir = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m18-gstack-"));
 process.env.GSTACK_HOME = gstackDir;
 clearDetectCache();
 const envPresent = detectRepoEnv(repo);

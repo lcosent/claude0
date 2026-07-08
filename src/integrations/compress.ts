@@ -42,7 +42,7 @@ function truncateMiddle(lines: string[], keep = 40): string[] {
   const tail = Math.floor(keep / 2);
   return [
     ...lines.slice(0, head),
-    `… (${lines.length - keep} lines elided by zipline) …`,
+    `… (${lines.length - keep} lines elided by claude0) …`,
     ...lines.slice(lines.length - tail),
   ];
 }

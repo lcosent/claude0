@@ -2,11 +2,11 @@
 
 **Version:** 1.2.0  
 **Date:** 2026-07-08  
-**Goal:** Make zipline usable by both newbies (simple) and experts (full control)
+**Goal:** Make claude0 usable by both newbies (simple) and experts (full control)
 
 ## What Changed
 
-Zipline now has two modes that serve different user needs:
+ClaudeZero now has two modes that serve different user needs:
 
 ### Turnkey Mode (Default)
 **For:** Beginners who want "just works"
@@ -14,7 +14,7 @@ Zipline now has two modes that serve different user needs:
 - Managed routing policy (locked header)
 - Simple command set (`init`, `status`, `expert`, `uninstall`)
 - Simplified help text
-- New `zipline status` command (simple savings summary)
+- New `claude0 status` command (simple savings summary)
 
 ### Expert Mode (Opt-in)
 **For:** Power users who want full control
@@ -43,41 +43,41 @@ Zipline now has two modes that serve different user needs:
 ## New Commands
 
 ```bash
-zipline init [--expert]   # Init in expert mode (default: turnkey)
-zipline status            # Simple savings summary (new)
-zipline expert            # Upgrade to expert mode
-zipline turnkey           # Downgrade to turnkey mode
+claude0 init [--expert]   # Init in expert mode (default: turnkey)
+claude0 status            # Simple savings summary (new)
+claude0 expert            # Upgrade to expert mode
+claude0 turnkey           # Downgrade to turnkey mode
 ```
 
 ## User Journeys
 
 ### Journey 1: Beginner Forever
 ```bash
-zipline init        # Done. That's it.
-zipline status      # Check savings
+claude0 init        # Done. That's it.
+claude0 status      # Check savings
 # Never switches to expert, happy with defaults
 ```
 
 ### Journey 2: Beginner → Power User
 ```bash
-zipline init        # Start simple
+claude0 init        # Start simple
 # ... weeks later ...
-zipline expert      # Unlock features
-vim .zipline/policy.yaml
-zipline doctor
-zipline learn
+claude0 expert      # Unlock features
+vim .claude0/policy.yaml
+claude0 doctor
+claude0 learn
 ```
 
 ### Journey 3: Expert from Start
 ```bash
-zipline init --expert    # Skip turnkey
-vim .zipline/policy.yaml
-zipline doctor
+claude0 init --expert    # Skip turnkey
+vim .claude0/policy.yaml
+claude0 doctor
 ```
 
 ## Mode Storage
 
-**File:** `.zipline/mode.json`
+**File:** `.claude0/mode.json`
 
 **Turnkey:**
 ```json
@@ -99,14 +99,14 @@ zipline doctor
 
 **Turnkey (locked):**
 ```yaml
-# This policy is managed by zipline (turnkey mode).
-# Run 'zipline expert' to unlock for manual editing.
+# This policy is managed by claude0 (turnkey mode).
+# Run 'claude0 expert' to unlock for manual editing.
 # Routing: haiku (cheap/fast) → sonnet (balanced) → opus (hard tasks) → fable (architecture/design)
 ```
 
 **Expert (unlocked):**
 ```yaml
-# Zipline routing policy (expert mode — edit freely)
+# ClaudeZero routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 # Lower tiers are cheaper; escalation happens on contract validation failure.
 # fable is the architect tier (~2x opus) — assign it only to planning/review,
@@ -118,32 +118,32 @@ zipline doctor
 
 ### Turnkey Help
 ```
-Zipline — Save 65% on Claude Code tokens, automatically
+ClaudeZero — Save 65% on Claude Code tokens, automatically
 
 Usage:
-  zipline init [--expert]         Set up zipline in your project
-  zipline status                  Check how much you're saving
-  zipline expert                  Unlock advanced features
-  zipline uninstall [--force]     Remove zipline
+  claude0 init [--expert]         Set up claude0 in your project
+  claude0 status                  Check how much you're saving
+  claude0 expert                  Unlock advanced features
+  claude0 uninstall [--force]     Remove claude0
 
-Want more control? Run 'zipline expert' for advanced commands.
+Want more control? Run 'claude0 expert' for advanced commands.
 ```
 
 ### Expert Help
 ```
-Zipline — deterministic orchestration spine for Claude Code
+ClaudeZero — deterministic orchestration spine for Claude Code
 
 Usage:
-  zipline init [--expert] [--global]     Initialize .zipline/ in current dir
-  zipline status                         Simple savings summary
-  zipline report [--global]              Detailed token savings and system metrics
-  zipline compile "goal" tags            Compile context bundle for a step
-  zipline doctor                         Show integrations stack
-  zipline policy <pull|push>             Sync routing policy
-  zipline learn [--apply]                Propose rule changes
-  zipline bloat [--fix] [--dry-run]      Detect context bloat
-  zipline turnkey                        Switch to turnkey mode
-  zipline uninstall [--global] [--force] Remove .zipline/ and hooks
+  claude0 init [--expert] [--global]     Initialize .claude0/ in current dir
+  claude0 status                         Simple savings summary
+  claude0 report [--global]              Detailed token savings and system metrics
+  claude0 compile "goal" tags            Compile context bundle for a step
+  claude0 doctor                         Show integrations stack
+  claude0 policy <pull|push>             Sync routing policy
+  claude0 learn [--apply]                Propose rule changes
+  claude0 bloat [--fix] [--dry-run]      Detect context bloat
+  claude0 turnkey                        Switch to turnkey mode
+  claude0 uninstall [--global] [--force] Remove .claude0/ and hooks
 ```
 
 ## Backward Compatibility

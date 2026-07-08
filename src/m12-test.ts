@@ -7,13 +7,13 @@ import { terseCapability } from "./integrations/terse";
 
 // M12 — terse-output live auto-disable. terse shapes model OUTPUT, so its true
 // net delta needs real calls (deferred). What M12 delivers and PROVES: the
-// auto-disable mechanism is observable in `zipline doctor` (resolveAvailability
+// auto-disable mechanism is observable in `claude0 doctor` (resolveAvailability
 // overlays disable state — the M8 gap where doctor ignored shouldDisable).
 
 function makeTempRepo(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m12-"));
-  fs.mkdirSync(path.join(dir, ".zipline"), { recursive: true });
-  fs.writeFileSync(path.join(dir, ".zipline", "ledger.jsonl"), "");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m12-"));
+  fs.mkdirSync(path.join(dir, ".claude0"), { recursive: true });
+  fs.writeFileSync(path.join(dir, ".claude0", "ledger.jsonl"), "");
   return dir;
 }
 

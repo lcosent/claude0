@@ -22,7 +22,7 @@ const STEPS: StepCase[] = [
 ];
 
 function main() {
-  const repoRoot = process.cwd(); // M1 test runs from repo root with .zipline/
+  const repoRoot = process.cwd(); // M1 test runs from repo root with .claude0/
   const savingsRatios: number[] = [];
   let compiledPass = 0;
   let fullPass = 0;

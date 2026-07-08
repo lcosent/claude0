@@ -7,7 +7,7 @@ import { rulesDir } from "./paths";
 
 // M24: Context Bloat Detection & Prevention
 //
-// Detects four bloat vectors that can silently erode zipline's savings:
+// Detects four bloat vectors that can silently erode claude0's savings:
 //
 // 1. STRUCTURAL BLOAT — rules growing without bound, redundant content, overly
 //    broad tags (causing over-selection). Measured: per-rule token size, token
@@ -285,7 +285,7 @@ function effortRank(effort?: string): number {
 // CLI + hook entrypoint: run detection and emit a human-readable report.
 export function printBloatReport(repoRoot: string): void {
   const report = detectBloat(repoRoot);
-  console.log(`Zipline Bloat Report (${report.timestamp})`);
+  console.log(`ClaudeZero Bloat Report (${report.timestamp})`);
   console.log(`Severity: ${report.severity.toUpperCase()}\n`);
 
   console.log("STRUCTURAL BLOAT");
@@ -324,7 +324,7 @@ export function printBloatReport(repoRoot: string): void {
 
 // Auto-fix: apply safe, deterministic fixes to the detected bloat (splitting
 // overweight rules, deduping redundant content). Writes changes to disk; the
-// caller decides when to invoke this (e.g., `zipline bloat --fix`).
+// caller decides when to invoke this (e.g., `claude0 bloat --fix`).
 export function autoFixBloat(repoRoot: string, dryRun = true): string[] {
   const report = detectBloat(repoRoot);
   const fixes: string[] = [];

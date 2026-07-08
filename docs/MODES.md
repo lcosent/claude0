@@ -1,6 +1,6 @@
 # Turnkey vs Expert Mode
 
-Zipline has two modes: **turnkey** (simple, managed) and **expert** (full control).
+ClaudeZero has two modes: **turnkey** (simple, managed) and **expert** (full control).
 
 ---
 
@@ -10,9 +10,9 @@ Zipline has two modes: **turnkey** (simple, managed) and **expert** (full contro
 
 ### What you get
 ```bash
-zipline init      # One command, fully set up
-zipline status    # Simple savings summary
-zipline uninstall # Clean removal
+claude0 init      # One command, fully set up
+claude0 status    # Simple savings summary
+claude0 uninstall # Clean removal
 ```
 
 ### What it does
@@ -27,16 +27,16 @@ zipline uninstall # Clean removal
 **Help text:**
 ```
 Usage:
-  zipline init [--expert]         Set up zipline in your project
-  zipline status                  Check how much you're saving
-  zipline expert                  Unlock advanced features
-  zipline uninstall [--force]     Remove zipline
+  claude0 init [--expert]         Set up claude0 in your project
+  claude0 status                  Check how much you're saving
+  claude0 expert                  Unlock advanced features
+  claude0 uninstall [--force]     Remove claude0
 ```
 
 **Policy file (`policy.yaml`):**
 ```yaml
-# This policy is managed by zipline (turnkey mode).
-# Run 'zipline expert' to unlock for manual editing.
+# This policy is managed by claude0 (turnkey mode).
+# Run 'claude0 expert' to unlock for manual editing.
 
 context-compile: haiku
 unit-test-write: sonnet
@@ -46,14 +46,14 @@ design-synthesis: fable
 
 **Status output:**
 ```
-Zipline Status
+ClaudeZero Status
 ─────────────────────────────────
 ✓ Saving 65.2% on average
 ✓ 47 runs, 93.6% success rate
 ✓ Using mostly Sonnet, rarely Opus
 
 Everything working well.
-Run 'zipline expert' for advanced controls.
+Run 'claude0 expert' for advanced controls.
 ```
 
 ---
@@ -66,19 +66,19 @@ Run 'zipline expert' for advanced controls.
 
 **Option 1: During init**
 ```bash
-zipline init --expert
+claude0 init --expert
 ```
 
 **Option 2: Upgrade later**
 ```bash
-zipline expert
+claude0 expert
 ```
 
 ### What changes
 
 **Unlocked policy:**
 ```yaml
-# Zipline routing policy (expert mode — edit freely)
+# ClaudeZero routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 # Advanced: use tier@effort for reasoning overrides (e.g., opus@xhigh)
 
@@ -92,53 +92,53 @@ risky-refactor: opus@xhigh  # ← You can add custom overrides
 **All commands available:**
 ```
 Usage:
-  zipline init [--expert] [--global]     Initialize .zipline/ in current dir
-  zipline status                         Simple savings summary
-  zipline report [--global]              Detailed token savings metrics
-  zipline compile "goal" tags            Preview context compilation
-  zipline doctor                         Show integrations + diagnostics
-  zipline policy <pull|push>             Sync routing policy across repos
-  zipline learn [--apply]                Propose rule improvements
-  zipline bloat [--fix] [--dry-run]      Detect context bloat
-  zipline turnkey                        Switch back to turnkey mode
-  zipline uninstall [--global] [--force] Remove zipline
+  claude0 init [--expert] [--global]     Initialize .claude0/ in current dir
+  claude0 status                         Simple savings summary
+  claude0 report [--global]              Detailed token savings metrics
+  claude0 compile "goal" tags            Preview context compilation
+  claude0 doctor                         Show integrations + diagnostics
+  claude0 policy <pull|push>             Sync routing policy across repos
+  claude0 learn [--apply]                Propose rule improvements
+  claude0 bloat [--fix] [--dry-run]      Detect context bloat
+  claude0 turnkey                        Switch back to turnkey mode
+  claude0 uninstall [--global] [--force] Remove claude0
 ```
 
 ### What you can do
 
 **1. Edit routing policy**
 ```bash
-vim .zipline/policy.yaml
+vim .claude0/policy.yaml
 ```
 Change which model runs for which task type.
 
 **2. Check integrations**
 ```bash
-zipline doctor
+claude0 doctor
 ```
 See what tools are active (rtk, MCP servers, etc.).
 
 **3. Get detailed metrics**
 ```bash
-zipline report
+claude0 report
 ```
 Full breakdown: tokens saved per task type, escalation rate, tier mix, regression detection.
 
 **4. Improve rules**
 ```bash
-zipline learn
+claude0 learn
 ```
 Get suggestions based on what's actually working.
 
 **5. Find waste**
 ```bash
-zipline bloat --fix
+claude0 bloat --fix
 ```
 Auto-detect and fix bloated rules, cache misses, compression issues.
 
 **6. Preview compilations**
 ```bash
-zipline compile "fix auth bug" typescript,security,testing
+claude0 compile "fix auth bug" typescript,security,testing
 ```
 See exactly what would be sent without spending tokens.
 
@@ -148,7 +148,7 @@ See exactly what would be sent without spending tokens.
 
 ### Turnkey → Expert (Upgrade)
 ```bash
-zipline expert
+claude0 expert
 ```
 
 Output:
@@ -161,14 +161,14 @@ Changes:
   • Full control over routing and tuning
 
 Next steps:
-  zipline doctor     — Check integrations
-  zipline report     — Detailed metrics
-  zipline --help     — See all commands
+  claude0 doctor     — Check integrations
+  claude0 report     — Detailed metrics
+  claude0 --help     — See all commands
 ```
 
 ### Expert → Turnkey (Downgrade)
 ```bash
-zipline turnkey
+claude0 turnkey
 ```
 
 Output:
@@ -176,18 +176,18 @@ Output:
 ✓ Downgraded to turnkey mode
 
 Changes:
-  • policy.yaml locked (managed by zipline)
+  • policy.yaml locked (managed by claude0)
   • Advanced commands hidden from help
   • Simplified command interface
 
-Run 'zipline status' to check how it's working.
+Run 'claude0 status' to check how it's working.
 ```
 
 ---
 
 ## How Mode is Stored
 
-File: `.zipline/mode.json`
+File: `.claude0/mode.json`
 
 **Turnkey:**
 ```json
@@ -211,27 +211,27 @@ File: `.zipline/mode.json`
 
 ### Journey 1: Beginner Forever
 ```bash
-zipline init        # Done. One command.
-zipline status      # Check savings occasionally
+claude0 init        # Done. One command.
+claude0 status      # Check savings occasionally
 # Happy with defaults, never switches to expert
 ```
 
 ### Journey 2: Start Simple, Tune Later
 ```bash
-zipline init                # Start in turnkey
+claude0 init                # Start in turnkey
 # ... weeks go by, wants more control ...
-zipline expert              # Unlock features
-vim .zipline/policy.yaml    # Customize routing
-zipline doctor              # Check what's active
-zipline learn               # Get improvement suggestions
+claude0 expert              # Unlock features
+vim .claude0/policy.yaml    # Customize routing
+claude0 doctor              # Check what's active
+claude0 learn               # Get improvement suggestions
 ```
 
 ### Journey 3: Power User from Start
 ```bash
-zipline init --expert       # Skip turnkey, go straight to expert
-vim .zipline/policy.yaml    # Customize immediately
-zipline doctor              # Check integrations
-zipline compile "task" tags # Preview compilations
+claude0 init --expert       # Skip turnkey, go straight to expert
+vim .claude0/policy.yaml    # Customize immediately
+claude0 doctor              # Check integrations
+claude0 compile "task" tags # Preview compilations
 ```
 
 ---
@@ -261,21 +261,21 @@ zipline compile "task" tags # Preview compilations
 
 **Turnkey (locked):**
 ```yaml
-# This policy is managed by zipline (turnkey mode).
-# Run 'zipline expert' to unlock for manual editing.
+# This policy is managed by claude0 (turnkey mode).
+# Run 'claude0 expert' to unlock for manual editing.
 ```
 
 **Expert (unlocked):**
 ```yaml
-# Zipline routing policy (expert mode — edit freely)
+# ClaudeZero routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 ```
 
-When you switch modes, zipline rewrites the policy header but preserves your routing entries.
+When you switch modes, claude0 rewrites the policy header but preserves your routing entries.
 
 ### Backward Compatibility
 
-- Repos without `.zipline/mode.json` default to turnkey
+- Repos without `.claude0/mode.json` default to turnkey
 - All commands work in both modes (advanced ones just aren't shown in turnkey help)
 - No ledger schema changes
 - Old policies parse correctly

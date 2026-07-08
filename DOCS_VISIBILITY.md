@@ -4,8 +4,8 @@ This document explains which files are visible where.
 
 ## Three Audiences
 
-1. **NPM users** — `npm install zipline` (most users, want essentials only)
-2. **GitHub visitors** — Browse github.com/lcosent/zipline (evaluating, exploring)
+1. **NPM users** — `npm install claude0` (most users, want essentials only)
+2. **GitHub visitors** — Browse github.com/lcosent/claude0 (evaluating, exploring)
 3. **Contributors** — Clone repo, want to contribute (need full context)
 
 ## What Goes Where
@@ -61,7 +61,7 @@ This document explains which files are visible where.
 ❌ **Excluded (via .gitignore):**
 - `node_modules/` — Dependencies
 - `dist/` — Build artifacts (rebuilt on npm prepublish)
-- `.zipline/ledger.jsonl` — Test run data
+- `.claude0/ledger.jsonl` — Test run data
 - IDE files, logs, temp files
 
 ## User-Facing Documentation
@@ -98,7 +98,7 @@ This document explains which files are visible where.
 ```
 ┌─────────────────┐
 │  NPM Package    │  Essentials only (README, QUICKSTART, docs/, dist/)
-│  (npm install)  │  What users need to use zipline
+│  (npm install)  │  What users need to use claude0
 └─────────────────┘
 
 ┌─────────────────┐

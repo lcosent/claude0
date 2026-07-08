@@ -15,17 +15,17 @@ import { readLedger } from "./ledger";
 // store (ZIPLINE_POLICY_REMOTE) and temp repos — never touches the real global.
 
 function makeRepo(policy?: string): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m13-"));
-  fs.mkdirSync(path.join(dir, ".zipline"), { recursive: true });
-  fs.writeFileSync(path.join(dir, ".zipline", "ledger.jsonl"), "");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m13-"));
+  fs.mkdirSync(path.join(dir, ".claude0"), { recursive: true });
+  fs.writeFileSync(path.join(dir, ".claude0", "ledger.jsonl"), "");
   if (policy !== undefined) {
-    fs.writeFileSync(path.join(dir, ".zipline", "policy.yaml"), policy);
+    fs.writeFileSync(path.join(dir, ".claude0", "policy.yaml"), policy);
   }
   return dir;
 }
 
 function localPolicy(repo: string): PolicyMap {
-  return parsePolicy(fs.readFileSync(path.join(repo, ".zipline", "policy.yaml"), "utf8"));
+  return parsePolicy(fs.readFileSync(path.join(repo, ".claude0", "policy.yaml"), "utf8"));
 }
 
 function main() {
@@ -37,7 +37,7 @@ function main() {
   };
 
   // Isolated central store.
-  const central = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "zipline-central-")), "policy.yaml");
+  const central = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "claude0-central-")), "policy.yaml");
   process.env.ZIPLINE_POLICY_REMOTE = central;
 
   // 0. Parse/serialize round-trips.

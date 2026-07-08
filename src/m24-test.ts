@@ -1,6 +1,6 @@
 // M24: Context Bloat Detection & Prevention
 //
-// GATE: zipline bloat command exists, detects all four bloat vectors (structural,
+// GATE: claude0 bloat command exists, detects all four bloat vectors (structural,
 // cache, compression, escalation), and produces actionable recommendations. Auto-
 // fix applies safe transformations (split overweight rules, merge redundant pairs)
 // without breaking the ledger or compiler.
@@ -15,16 +15,16 @@ import { loadRules } from "./compiler";
 import { encode } from "gpt-tokenizer";
 
 function makeTempRepo(): string {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "zipline-m24-"));
-  const ziplineDir = path.join(tmp, ".zipline");
-  const rulesDir = path.join(ziplineDir, "rules");
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "claude0-m24-"));
+  const claude0Dir = path.join(tmp, ".claude0");
+  const rulesDir = path.join(claude0Dir, "rules");
   fs.mkdirSync(rulesDir, { recursive: true });
-  fs.writeFileSync(path.join(ziplineDir, "ledger.jsonl"), "");
+  fs.writeFileSync(path.join(claude0Dir, "ledger.jsonl"), "");
   return tmp;
 }
 
 function writeRule(repoRoot: string, file: string, tags: string[], body: string) {
-  const rulesDir = path.join(repoRoot, ".zipline", "rules");
+  const rulesDir = path.join(repoRoot, ".claude0", "rules");
   const content = `---\ntags: [${tags.join(", ")}]\n---\n${body}`;
   fs.writeFileSync(path.join(rulesDir, file), content);
 }
@@ -214,7 +214,7 @@ function gate_autoFixAppliesSafely() {
   const dryFixes = autoFixBloat(repo, true);
   assert.ok(dryFixes.length > 0, "Dry-run should report fixable issues");
   assert.ok(
-    fs.existsSync(path.join(repo, ".zipline", "rules", "overweight.md")),
+    fs.existsSync(path.join(repo, ".claude0", "rules", "overweight.md")),
     "Dry-run should not delete files"
   );
 
@@ -228,11 +228,11 @@ function gate_autoFixAppliesSafely() {
 
   // Verify merge happened (security-a.md absorbed security-b.md).
   assert.ok(
-    !fs.existsSync(path.join(repo, ".zipline", "rules", "security-b.md")),
+    !fs.existsSync(path.join(repo, ".claude0", "rules", "security-b.md")),
     "Redundant rule should be removed"
   );
   assert.ok(
-    fs.existsSync(path.join(repo, ".zipline", "rules", "security-a.md")),
+    fs.existsSync(path.join(repo, ".claude0", "rules", "security-a.md")),
     "Primary rule should remain"
   );
 

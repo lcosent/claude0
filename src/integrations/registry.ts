@@ -5,7 +5,7 @@ import { docsCapability } from "./docs";
 import { terseCapability } from "./terse";
 import { decisionLogCapability } from "./decision-log";
 
-// All native capabilities. Order is display order for `zipline doctor`.
+// All native capabilities. Order is display order for `claude0 doctor`.
 export const CAPABILITIES: Capability[] = [
   compressCapability,
   terseCapability,

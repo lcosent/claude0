@@ -1,16 +1,16 @@
 import * as fs from "fs";
 import * as path from "path";
-import { ziplineDir } from "./paths";
+import { claude0Dir } from "./paths";
 
-export type ZiplineMode = "turnkey" | "expert";
+export type ClaudeZeroMode = "turnkey" | "expert";
 
 export interface ModeConfig {
-  mode: ZiplineMode;
+  mode: ClaudeZeroMode;
   upgraded_at: string | null;
 }
 
 function modePath(root: string): string {
-  return path.join(ziplineDir(root), "mode.json");
+  return path.join(claude0Dir(root), "mode.json");
 }
 
 export function readMode(root: string): ModeConfig {

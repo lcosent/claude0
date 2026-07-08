@@ -29,13 +29,13 @@ git push origin master
 
 ### 1. Repository Settings (2 minutes)
 
-Go to: `https://github.com/lcosent/zipline/settings`
+Go to: `https://github.com/lcosent/claude0/settings`
 
 #### About Section
 ```
 Description: Cut your Claude Code bill by 65%. Intelligent context compilation that sends only relevant rules. Zero workflow changes.
 
-Website: https://github.com/lcosent/zipline
+Website: https://github.com/lcosent/claude0
 
 Topics (click "Add topics"):
 claude, claude-code, ai, llm, anthropic, tokens, optimization, context, cost-savings, productivity, developer-tools, cli, typescript
@@ -86,7 +86,7 @@ Create a 1280x640px image for social sharing.
 
 #### Design Requirements
 - **Background:** Clean white or subtle gradient
-- **Title:** "⚡️ zipline" (large, bold)
+- **Title:** "⚡️ claude0" (large, bold)
 - **Tagline:** "Cut your Claude Code bill by 65%"
 - **Style:** Minimal, high-contrast, Apple-like
 - **Colors:** Blue/white palette
@@ -139,15 +139,15 @@ Consider adding:
    - Add to README after "At a glance" section
 
 2. **Screenshot** (5 minutes)
-   - Take screenshot of `zipline status` output
+   - Take screenshot of `claude0 status` output
    - Add to README or docs/
    - Makes the value tangible
 
-3. **Badge: "Optimized with Zipline"** (10 minutes)
+3. **Badge: "Optimized with ClaudeZero"** (10 minutes)
    - Create badge for users to add to their repos
    - Add markdown snippet to README:
    ```markdown
-   [![Optimized with Zipline](https://img.shields.io/badge/Optimized%20with-Zipline-blue?style=flat-square)](https://github.com/lcosent/zipline)
+   [![Optimized with ClaudeZero](https://img.shields.io/badge/Optimized%20with-ClaudeZero-blue?style=flat-square)](https://github.com/lcosent/claude0)
    ```
 
 ### Medium Impact, Medium Effort
@@ -164,7 +164,7 @@ Consider adding:
    - Consider: lightning bolt, zipper, compression symbol
 
 6. **Comparison Chart** (30 minutes)
-   - Create table comparing zipline to alternatives
+   - Create table comparing claude0 to alternatives
    - If no alternatives exist, compare to "no optimization"
 
 ### Lower Priority

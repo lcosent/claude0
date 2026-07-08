@@ -13,7 +13,7 @@ export interface ModelResponse {
   source: "claude-cli" | "simulate";
 }
 
-// Map zipline tiers to claude CLI --model aliases.
+// Map claude0 tiers to claude CLI --model aliases.
 const TIER_MODEL: Record<Tier, string> = {
   haiku: "haiku",
   sonnet: "sonnet",

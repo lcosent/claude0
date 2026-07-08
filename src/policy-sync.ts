@@ -9,8 +9,8 @@ import { appendLedger } from "./ledger";
 // policy up to a central store; `pull` layers the central policy UNDER the
 // repo's own entries (per-repo overrides always win). Provenance is logged.
 //
-// Central store: $ZIPLINE_POLICY_REMOTE if set, else ~/.zipline/policy.yaml
-// (the global path `zipline init --global` creates). Flat `key: tier` format,
+// Central store: $ZIPLINE_POLICY_REMOTE if set, else ~/.claude0/policy.yaml
+// (the global path `claude0 init --global` creates). Flat `key: tier` format,
 // parsed directly — no YAML dependency.
 
 // A policy entry is a bare tier (effort defaults per tier) or a `tier@effort`
@@ -19,7 +19,7 @@ export type PolicyMap = Record<string, PolicyEntry>;
 
 export function centralPolicyPath(): string {
   if (process.env.ZIPLINE_POLICY_REMOTE) return process.env.ZIPLINE_POLICY_REMOTE;
-  return path.join(process.env.HOME || "", ".zipline", "policy.yaml");
+  return path.join(process.env.HOME || "", ".claude0", "policy.yaml");
 }
 
 /**
@@ -64,7 +64,7 @@ function readPolicyFile(file: string): PolicyMap {
 }
 
 const HEADER =
-  "# Zipline routing policy\n# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)";
+  "# ClaudeZero routing policy\n# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)";
 
 export interface SyncResult {
   central: string;

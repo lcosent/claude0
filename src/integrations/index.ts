@@ -60,7 +60,7 @@ export function shouldDisable(name: string, repoRoot: string): boolean {
 /**
  * Resolve a capability's effective availability for THIS repo, overlaying
  * auto-disable on top of its own availability(). This is the single source of
- * truth both `zipline doctor` and runCapability use — so a net-negative
+ * truth both `claude0 doctor` and runCapability use — so a net-negative
  * capability shows "disabled" everywhere, not just in the run path.
  */
 export function resolveAvailability(cap: Capability, repoRoot: string, env: RepoEnv) {

@@ -1,4 +1,4 @@
-# Zipline — Implementation Summary
+# ClaudeZero — Implementation Summary
 
 **Version:** 0.1.0  
 **Status:** All milestones complete (M0-M7)  
@@ -20,7 +20,7 @@ A **deterministic orchestration spine** for Claude Code that enforces:
 
 ## Milestones Delivered
 
-### M0: Autonomy Zipline ✅
+### M0: Autonomy ClaudeZero ✅
 - Self-running milestone loops with PASS/FAIL/STUCK detection
 - `hello` milestone (pass test)
 - `always-fail` milestone (stuck detection test)
@@ -28,7 +28,7 @@ A **deterministic orchestration spine** for Claude Code that enforces:
 
 ### M1: Compiler + Ledger ✅
 - Context compiler: `compile(goal, tags)` → minimal bundle
-- Rules: `.zipline/rules/*.md` with frontmatter tags
+- Rules: `.claude0/rules/*.md` with frontmatter tags
 - Ledger: append-only JSONL with `tokens_in`, `baseline_tokens`
 - **GO/NO-GO gate passed:** 64.4% median savings, no correctness regression
 
@@ -59,7 +59,7 @@ A **deterministic orchestration spine** for Claude Code that enforces:
 - **Result:** Tuned policy 75% of starting cost at pass-rate parity
 
 ### M6: Dashboard ✅
-- `zipline report`: runs, savings %, tier mix, escalations, stuck count
+- `claude0 report`: runs, savings %, tier mix, escalations, stuck count
 - Savings by milestone with regression detection
 - Reconciliation check vs raw ledger sums
 - **Result:** All metrics visible, seeded regression detected
@@ -76,8 +76,8 @@ A **deterministic orchestration spine** for Claude Code that enforces:
 ### First Time (Per Repo)
 ```bash
 cd my-project
-zipline init
-# Creates: .zipline/rules/, .zipline/policy.yaml, .zipline/ledger.jsonl
+claude0 init
+# Creates: .claude0/rules/, .claude0/policy.yaml, .claude0/ledger.jsonl
 # Configures: .claude/settings.json hook
 ```
 
@@ -92,7 +92,7 @@ claude> fix the auth bug
 
 ### Reporting
 ```bash
-zipline report
+claude0 report
 # Output:
 #   Total runs:       29
 #   Pass rate:        89.7%
@@ -104,17 +104,17 @@ zipline report
 
 ### Explicit Orchestration
 ```bash
-claude> /zipline build "add user authentication"
+claude> /claude0 build "add user authentication"
 # Runs: DESIGN → PLAN → GATE → BUILD → VERIFY
 # Full milestone-based loop with santa-method verification
 ```
 
 ### Removal
 ```bash
-zipline uninstall
+claude0 uninstall
 # Warns if ledger has data
-zipline uninstall --force
-# Removes: .zipline/, hooks, ZIPLINE_README.md
+claude0 uninstall --force
+# Removes: .claude0/, hooks, ZIPLINE_README.md
 ```
 
 ---
@@ -122,10 +122,10 @@ zipline uninstall --force
 ## Architecture
 
 ```
-zipline/
+claude0/
 ├─ src/
 │  ├─ cli.ts                 # CLI entrypoint (init/report/compile/uninstall)
-│  ├─ paths.ts               # Path resolution (finds .zipline/ upward)
+│  ├─ paths.ts               # Path resolution (finds .claude0/ upward)
 │  ├─ compiler.ts            # M1: Context compiler
 │  ├─ policy.ts              # M2: Tier routing
 │  ├─ contract.ts            # M3: Schema validation
@@ -149,7 +149,7 @@ zipline/
 │     ├─ hello.ts            # M0 pass test
 │     └─ always-fail.ts      # M0 stuck test
 │
-├─ .zipline/                 # Per-repo state (gitignored: ledger.jsonl)
+├─ .claude0/                 # Per-repo state (gitignored: ledger.jsonl)
 │  ├─ rules/                 # 6 sample rules (typescript, git, security, etc.)
 │  ├─ policy.yaml            # Tier routing policy
 │  └─ ledger.jsonl           # Operation log
@@ -164,10 +164,10 @@ zipline/
 
 ## Key Design Decisions
 
-### 1. Per-Repo `.zipline/` (Like Git)
-- Walks upward to find `.zipline/` from any subdirectory
+### 1. Per-Repo `.claude0/` (Like Git)
+- Walks upward to find `.claude0/` from any subdirectory
 - Self-contained: rules, policy, ledger in one place
-- Optional global `~/.zipline/` for shared policy
+- Optional global `~/.claude0/` for shared policy
 
 ### 2. Compiler Over-Includes Conservatively
 - Silent-drop protection: throws if required tag missing
@@ -185,7 +185,7 @@ zipline/
 - Can always reconstruct what naive approach would have cost
 
 ### 5. Orchestrator Boundary
-- Zipline owns: routing, context, ledger
+- ClaudeZero owns: routing, context, ledger
 - Gstack skills (if used): leaf work-steps, invoked headless
 - No nested orchestrators fighting
 
@@ -238,11 +238,11 @@ M7: shared cold-start cost <= hand-written: PASS
 Full workflow validated:
 
 ```bash
-✅ zipline init              Creates .zipline/ structure
-✅ zipline compile           Context compilation works
-✅ zipline report            Empty ledger handled
-✅ zipline uninstall         Data loss protection works
-✅ zipline uninstall --force Forced removal works
+✅ claude0 init              Creates .claude0/ structure
+✅ claude0 compile           Context compilation works
+✅ claude0 report            Empty ledger handled
+✅ claude0 uninstall         Data loss protection works
+✅ claude0 uninstall --force Forced removal works
 ```
 
 ---
@@ -250,7 +250,7 @@ Full workflow validated:
 ## What's Next (v0.2)
 
 ### 1. Hook Integration
-- Implement `zipline intercept` command
+- Implement `claude0 intercept` command
 - Claude Code calls on `user-prompt-submit`
 - Compile context → inject into prompt → log to ledger
 - Transparent from user's perspective
@@ -262,8 +262,8 @@ Full workflow validated:
 - Real contract validation → repair retry
 
 ### 3. Cross-Repo Policy Sync
-- `zipline policy pull` — fetch shared policy
-- `zipline policy push` — update shared from local tuning
+- `claude0 policy pull` — fetch shared policy
+- `claude0 policy push` — update shared from local tuning
 - Version tracking, provenance logs
 
 ### 4. Continuous Learning Pipeline
@@ -275,10 +275,10 @@ Full workflow validated:
 
 ## Non-Goals (Revisited)
 
-- ❌ Not replacing gstack/rtk — zipline orchestrates them
+- ❌ Not replacing gstack/rtk — claude0 orchestrates them
 - ❌ Not a hosted product — portable across repos, runs locally
 - ❌ Not model-training — "learning" = policy/rule updates from outcomes
-- ❌ Not Claude-replacing — zipline is a spine, Claude is the engine
+- ❌ Not Claude-replacing — claude0 is a spine, Claude is the engine
 
 ---
 
@@ -323,7 +323,7 @@ Escalations:      <5% of runs
 Stuck:            0 (outside of intentional always-fail test)
 ```
 
-**Falsifiable claim:** Zipline saves ≥60% input tokens vs full-context at ≥90% pass-rate.
+**Falsifiable claim:** ClaudeZero saves ≥60% input tokens vs full-context at ≥90% pass-rate.
 
 **Evidence:** M1 ledger entries, reconciled in M6 report.
 
@@ -331,7 +331,7 @@ Stuck:            0 (outside of intentional always-fail test)
 
 ## Conclusion
 
-Zipline delivers on the thesis:
+ClaudeZero delivers on the thesis:
 
 > Don't build a new agent framework. Build a thin **deterministic spine** that enforces context compilation, contracts, and learning.
 

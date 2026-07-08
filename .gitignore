@@ -31,8 +31,8 @@ coverage/
 # OS
 Thumbs.db
 
-# Zipline state (ledger contains run data)
-.zipline/ledger.jsonl
+# ClaudeZero state (ledger contains run data)
+.claude0/ledger.jsonl
 
 # Local test data
 /tmp/
