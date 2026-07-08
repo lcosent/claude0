@@ -12,6 +12,8 @@ import {
 import {
   SAMPLE_RULES,
   DEFAULT_POLICY,
+  TURNKEY_POLICY,
+  EXPERT_POLICY,
   HOOK_CONFIG,
   HOOK_EVENT,
   HOOK_COMMAND,
@@ -19,6 +21,7 @@ import {
   POST_TOOL_COMMAND,
   README,
 } from "./init-templates";
+import { readMode, writeMode, upgradeToExpert, downgradeToTurnkey, isExpertMode } from "./mode";
 import { interceptFromStdin } from "./intercept";
 import { compressOutputFromStdin } from "./compress-output";
 import { pushPolicy, pullPolicy, centralPolicyPath } from "./policy-sync";
@@ -29,7 +32,7 @@ import { buildReport, detectRegression } from "./report";
 import { compile, fullContextBundle, tokenCount } from "./compiler";
 import { printBloatReport, autoFixBloat } from "./bloat-detector";
 
-function initCommand(opts: { global?: boolean } = {}) {
+function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
   const targetDir = opts.global
     ? path.join(process.env.HOME || "~", ".zipline")
     : process.cwd();
@@ -44,6 +47,8 @@ function initCommand(opts: { global?: boolean } = {}) {
     process.exit(1);
   }
 
+  const mode = opts.expert ? "expert" : "turnkey";
+
   // Create directory structure
   fs.mkdirSync(ziplineDirPath, { recursive: true });
   fs.mkdirSync(rulesDirPath, { recursive: true });
@@ -53,11 +58,17 @@ function initCommand(opts: { global?: boolean } = {}) {
     fs.writeFileSync(path.join(rulesDirPath, filename), content);
   }
 
-  // Write default policy
+  // Write mode-appropriate policy
   const policyFile = opts.global
     ? path.join(targetDir, "policy.yaml")
     : policyPath(targetDir);
-  fs.writeFileSync(policyFile, DEFAULT_POLICY);
+  const policyContent = opts.expert ? EXPERT_POLICY : TURNKEY_POLICY;
+  fs.writeFileSync(policyFile, policyContent);
+
+  // Write mode config (project-level only)
+  if (!opts.global) {
+    writeMode(targetDir, { mode, upgraded_at: null });
+  }
 
   // Create empty ledger
   const ledgerFile = opts.global
@@ -87,14 +98,21 @@ function initCommand(opts: { global?: boolean } = {}) {
     // Write README
     fs.writeFileSync(path.join(targetDir, "ZIPLINE_README.md"), README);
 
-    console.log(`Zipline initialized in ${targetDir}`);
+    console.log(`Zipline initialized in ${targetDir} (${mode} mode)`);
     console.log(`\nCreated:`);
     console.log(`  .zipline/rules/        (${Object.keys(SAMPLE_RULES).length} sample rules)`);
-    console.log(`  .zipline/policy.yaml   (routing policy)`);
+    console.log(`  .zipline/policy.yaml   (routing policy${mode === "turnkey" ? " — managed" : ""})`);
+    console.log(`  .zipline/mode.json     (${mode} mode)`);
     console.log(`  .zipline/ledger.jsonl  (empty log)`);
     console.log(`  .claude/settings.json  (hook configured)`);
     console.log(`  ZIPLINE_README.md      (usage guide)`);
-    console.log(`\nNext: Just use Claude Code normally. Zipline will compile context transparently.`);
+    if (mode === "turnkey") {
+      console.log(`\nNext: Just use Claude Code normally. Zipline works transparently.`);
+      console.log(`Run 'zipline status' to see savings, 'zipline expert' for advanced features.`);
+    } else {
+      console.log(`\nExpert mode enabled — full control over routing policy and advanced commands.`);
+      console.log(`Run 'zipline doctor' to check integrations, 'zipline --help' for all commands.`);
+    }
   } else {
     console.log(`Global zipline initialized in ${targetDir}`);
     console.log(`\nCreated:`);
@@ -275,6 +293,115 @@ function interceptCommand() {
   void interceptFromStdin(readStdin);
 }
 
+function statusCommand() {
+  const root = requireZiplineRoot();
+  const entries = readLedger(root);
+
+  if (entries.length === 0) {
+    console.log("No activity yet. Use Claude Code normally — zipline will start logging.");
+    return;
+  }
+
+  const report = buildReport(entries);
+  const totalSavings =
+    report.totalBaselineTokens > 0
+      ? ((report.totalBaselineTokens - report.totalTokensIn) /
+          report.totalBaselineTokens) *
+        100
+      : 0;
+  const passRate = ((report.passCount / report.totalRuns) * 100).toFixed(1);
+
+  console.log("Zipline Status");
+  console.log("─".repeat(33));
+  console.log(`✓ Saving ${totalSavings.toFixed(1)}% on average`);
+  console.log(`✓ ${report.totalRuns} runs, ${passRate}% success rate`);
+
+  const topTier = Object.entries(report.tierMix).sort((a, b) => b[1] - a[1])[0];
+  if (topTier) {
+    const others = Object.keys(report.tierMix).filter(t => t !== topTier[0]).join("/") || "none";
+    console.log(`✓ Using mostly ${topTier[0]}${others !== "none" ? `, rarely ${others}` : ""}`);
+  }
+
+  console.log("");
+  console.log("Everything working well.");
+
+  const mode = readMode(root).mode;
+  if (mode === "turnkey") {
+    console.log("Run 'zipline expert' for advanced controls.");
+  } else {
+    console.log("Run 'zipline report' for detailed metrics.");
+  }
+}
+
+function expertCommand() {
+  const root = requireZiplineRoot();
+  const current = readMode(root);
+
+  if (current.mode === "expert") {
+    console.log("Already in expert mode.");
+    return;
+  }
+
+  upgradeToExpert(root);
+
+  // Rewrite policy.yaml header
+  const policyFile = policyPath(root);
+  if (fs.existsSync(policyFile)) {
+    const currentPolicy = fs.readFileSync(policyFile, "utf8");
+    const lines = currentPolicy.split("\n");
+
+    // Strip old header, add expert header
+    const contentStart = lines.findIndex(l => l.match(/^[a-z]/));
+    const content = lines.slice(contentStart).join("\n");
+    fs.writeFileSync(policyFile, EXPERT_POLICY.split("\n").slice(0, 7).join("\n") + "\n" + content);
+  }
+
+  console.log("✓ Upgraded to expert mode");
+  console.log("");
+  console.log("Changes:");
+  console.log("  • policy.yaml unlocked for manual editing");
+  console.log("  • All advanced commands now available");
+  console.log("  • Full control over routing and tuning");
+  console.log("");
+  console.log("Next steps:");
+  console.log("  zipline doctor     — Check integrations");
+  console.log("  zipline report     — Detailed metrics");
+  console.log("  zipline --help     — See all commands");
+}
+
+function turnkeyCommand() {
+  const root = requireZiplineRoot();
+  const current = readMode(root);
+
+  if (current.mode === "turnkey") {
+    console.log("Already in turnkey mode.");
+    return;
+  }
+
+  downgradeToTurnkey(root);
+
+  // Rewrite policy.yaml header
+  const policyFile = policyPath(root);
+  if (fs.existsSync(policyFile)) {
+    const currentPolicy = fs.readFileSync(policyFile, "utf8");
+    const lines = currentPolicy.split("\n");
+
+    // Strip old header, add turnkey header
+    const contentStart = lines.findIndex(l => l.match(/^[a-z]/));
+    const content = lines.slice(contentStart).join("\n");
+    fs.writeFileSync(policyFile, TURNKEY_POLICY.split("\n").slice(0, 3).join("\n") + "\n\n" + content);
+  }
+
+  console.log("✓ Downgraded to turnkey mode");
+  console.log("");
+  console.log("Changes:");
+  console.log("  • policy.yaml locked (managed by zipline)");
+  console.log("  • Advanced commands hidden from help");
+  console.log("  • Simplified command interface");
+  console.log("");
+  console.log("Run 'zipline status' to check how it's working.");
+}
+
 function doctorCommand() {
   const root = requireZiplineRoot();
   const env = detectRepoEnv(root);
@@ -332,7 +459,22 @@ function main() {
   try {
     switch (command) {
       case "init":
-        initCommand({ global: args.includes("--global") });
+        initCommand({
+          global: args.includes("--global"),
+          expert: args.includes("--expert"),
+        });
+        break;
+
+      case "status":
+        statusCommand();
+        break;
+
+      case "expert":
+        expertCommand();
+        break;
+
+      case "turnkey":
+        turnkeyCommand();
         break;
 
       case "report":
@@ -424,30 +566,58 @@ function main() {
         break;
       }
 
-      default:
-        console.log(`Zipline — deterministic orchestration spine for Claude Code
+      default: {
+        // Detect mode for help text (if in a zipline repo)
+        const root = findZiplineRoot();
+        const mode = root ? readMode(root).mode : "turnkey";
+        const isExpert = mode === "expert";
+
+        if (isExpert) {
+          // Expert mode: show all commands
+          console.log(`Zipline — deterministic orchestration spine for Claude Code
 
 Usage:
-  zipline init [--global]         Initialize .zipline/ in current dir (or ~/.zipline/)
-  zipline report [--global]       Show token savings and system metrics
-  zipline compile "goal" tags     Compile context bundle for a step
-  zipline doctor                  Show integrations stack + per-repo availability
-  zipline policy <pull|push>      Sync routing policy with the central store (repo overrides win)
-  zipline learn [--apply]         Propose rule changes from ledger evidence (proposal-only without --apply)
-  zipline bloat [--fix] [--dry-run]  Detect context bloat and optionally auto-fix
-  zipline uninstall [--global] [--force]  Remove .zipline/ and hooks
-  zipline intercept               (Internal: called by Claude Code hook)
+  zipline init [--expert] [--global]     Initialize .zipline/ in current dir (or ~/.zipline/)
+  zipline status                         Simple savings summary
+  zipline report [--global]              Detailed token savings and system metrics
+  zipline compile "goal" tags            Compile context bundle for a step
+  zipline doctor                         Show integrations stack + per-repo availability
+  zipline policy <pull|push>             Sync routing policy with the central store (repo overrides win)
+  zipline learn [--apply]                Propose rule changes from ledger evidence
+  zipline bloat [--fix] [--dry-run]      Detect context bloat and optionally auto-fix
+  zipline turnkey                        Switch to turnkey mode (managed policy)
+  zipline uninstall [--global] [--force] Remove .zipline/ and hooks
+  zipline intercept                      (Internal: called by Claude Code hook)
 
 Examples:
-  zipline init                    # Set up zipline in current project
-  zipline report                  # View stats for current project
+  zipline report                         # Detailed metrics
   zipline compile "fix auth bug" typescript,security,testing
-  zipline uninstall               # Remove zipline from current project
-  zipline uninstall --force       # Remove even if ledger has data
+  zipline doctor                         # Check integrations
+  zipline learn --apply                  # Apply rule improvements
 
 After init, zipline runs transparently — just use Claude Code normally.
 `);
+        } else {
+          // Turnkey mode: show only essential commands
+          console.log(`Zipline — Save 65% on Claude Code tokens, automatically
+
+Usage:
+  zipline init [--expert]         Set up zipline in your project
+  zipline status                  Check how much you're saving
+  zipline expert                  Unlock advanced features
+  zipline uninstall [--force]     Remove zipline
+
+Examples:
+  zipline init                    # One command, fully set up
+  zipline status                  # See your savings
+
+After init, just use Claude Code normally. Zipline works in the background.
+
+Want more control? Run 'zipline expert' for advanced commands.
+`);
+        }
         process.exit(command ? 1 : 0);
+      }
     }
   } catch (err) {
     if (err instanceof Error) {

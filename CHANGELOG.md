@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-08
+
+### Added — Turnkey vs Expert modes
+
+Zipline now supports two modes to serve both beginners (simple, zero-config) and power users (full control).
+
+- **Turnkey mode (default).** `zipline init` creates a managed setup with sensible defaults. Policy is locked (header says "managed by zipline"), help text shows only essential commands (`init`, `status`, `expert`, `uninstall`), and the experience is "just works." New `zipline status` command provides a simple savings summary.
+- **Expert mode (opt-in).** `zipline init --expert` or `zipline expert` unlocks the policy for editing, shows all advanced commands (`compile`, `doctor`, `policy`, `learn`, `bloat`), and enables full control. Policy header changes to "expert mode — edit freely."
+- **Mode tracking.** New `.zipline/mode.json` stores current mode and upgrade timestamp. Backward-compatible: repos without `mode.json` default to turnkey.
+- **Mode switching.** `zipline expert` upgrades (updates `mode.json`, rewrites policy header). `zipline turnkey` downgrades (locks policy, hides advanced commands).
+- **Documentation.** New `QUICKSTART.md` (30-second beginner guide), `docs/MODES.md` (mode design), and simplified `README.md` leading with turnkey experience.
+- **Test coverage.** `npm run test:mode` verifies mode read/write, upgrade/downgrade, and fallback behavior.
+
+All changes are backward-compatible: existing repos default to turnkey mode, all commands still work, no ledger schema changes.
+
 ## [1.1.0] - 2026-07-04
 
 ### Added — Fable-era routing (M20–M23)

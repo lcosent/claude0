@@ -30,11 +30,9 @@ tags: [git, commits]
 Write commit messages that explain why, not what. Use conventional commit format: \`feat:\`, \`fix:\`, \`refactor:\`, \`docs:\`, \`test:\`. Keep commits atomic — one logical change per commit. Always review \`git diff --staged\` before committing.`,
 };
 
-export const DEFAULT_POLICY = `# Zipline routing policy
-# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)
-# Lower tiers are cheaper; escalation happens on contract validation failure.
-# fable is the architect tier (~2x opus) — assign it only to planning/review,
-# never to mechanical work. Escalation never promotes a step into fable.
+export const TURNKEY_POLICY = `# This policy is managed by zipline (turnkey mode).
+# Run 'zipline expert' to unlock for manual editing.
+# Routing: haiku (cheap/fast) → sonnet (balanced) → opus (hard tasks) → fable (architecture/design)
 
 context-compile: haiku
 structured-extract: haiku
@@ -45,6 +43,26 @@ design-synthesis: fable
 debate: sonnet
 review: sonnet
 `;
+
+export const EXPERT_POLICY = `# Zipline routing policy (expert mode — edit freely)
+# Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
+# Lower tiers are cheaper; escalation happens on contract validation failure.
+# fable is the architect tier (~2x opus) — assign it only to planning/review,
+# never to mechanical work. Escalation never promotes a step into fable.
+# Advanced: use tier@effort for reasoning overrides (e.g., opus@xhigh)
+
+context-compile: haiku
+structured-extract: haiku
+unit-test-write: sonnet
+verify-output: sonnet
+implement-small-fn: sonnet
+design-synthesis: fable
+debate: sonnet
+review: sonnet
+`;
+
+// Backward compat export
+export const DEFAULT_POLICY = TURNKEY_POLICY;
 
 // Claude Code hook format: event keys are PascalCase and each maps to an array
 // of matcher-objects, each holding a "hooks" array of command entries.

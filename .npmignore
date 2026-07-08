@@ -1,0 +1,20 @@
+# Exclude internal development docs from npm package
+BACKLOG.md
+DESIGN.md
+IMPLEMENTATION.md
+MILESTONES.md
+M*_SUMMARY.md
+GITHUB_READY.md
+GITHUB_SETUP.md
+TURNKEY_EXPERT_SUMMARY.md
+
+# Exclude test source files (dist/ has compiled tests)
+src/
+
+# Exclude config files
+tsconfig.json
+.gitignore
+.github/
+
+# Exclude dev dependencies artifacts
+node_modules/
