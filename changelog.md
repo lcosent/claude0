@@ -74,6 +74,16 @@ Run tests: `npm test`
 
 ---
 
+---
+
 ## Security
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting.
+See [security.md](security.md) for vulnerability reporting.
+
+---
+
+<div align="center">
+
+**[⬆ back to top](#changelog)**
+
+</div>

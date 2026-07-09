@@ -183,6 +183,6 @@ Go use Claude Code and save tokens.
 
 <br/>
 
-**[Read full docs](README.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[Read full docs](readme.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
 
 </div>

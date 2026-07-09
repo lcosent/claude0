@@ -80,7 +80,8 @@
     "license.txt",
     "changelog.md",
     "contributing.md",
-    "security.md"
+    "security.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "type": "commonjs",
   "dependencies": {

@@ -6,31 +6,37 @@ labels: bug
 assignees: ''
 ---
 
-**Describe the bug**
+## Bug Description
+
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+## To Reproduce
+
 Steps to reproduce the behavior:
 1. Run command '...'
-2. See error '....'
+2. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Expected Behavior
 
-**Actual behavior**
+What you expected to happen.
+
+## Actual Behavior
+
 What actually happened.
 
-**Environment**
-- OS: [e.g. macOS 14.0]
-- Node version: [e.g. 18.0.0]
-- ClaudeZero version: [e.g. 0.1.0]
-- Claude Code version: [e.g. if applicable]
+## Environment
 
-**Ledger excerpt (if relevant)**
-```jsonl
-Paste relevant lines from .claude0/ledger.jsonl
-Remove any sensitive information
+- OS: [e.g., macOS 13.0, Ubuntu 22.04]
+- Node version: [e.g., 18.0.0]
+- claude0 version: [e.g., 1.0.0]
+- Claude Code version: [if applicable]
+
+## Logs
+
+```
+Paste any relevant logs here
 ```
 
-**Additional context**
+## Additional Context
+
 Add any other context about the problem here.

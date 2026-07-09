@@ -4,8 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
-| < 0.1   | :x:                |
+| 1.0.x   | ✅ Supported       |
+| < 1.0   | ❌ Not supported   |
 
 ## Reporting a Vulnerability
 
@@ -80,7 +80,7 @@ Override with `--force` only when certain.
 
 ## Known Issues
 
-None currently. Check [GitHub Issues](https://github.com/YOUR_USERNAME/claude0/issues) for reported vulnerabilities.
+None currently. Check [GitHub Issues](https://github.com/lcosent/claude0/issues) for reported vulnerabilities.
 
 ## Disclosure Policy
 
@@ -92,6 +92,14 @@ When a security issue is confirmed:
 
 ## Contact
 
-For security issues only, email: [your-email@example.com]
+For security issues, please open a [confidential security advisory](https://github.com/lcosent/claude0/security/advisories/new) on GitHub.
 
-For general issues, use [GitHub Issues](https://github.com/YOUR_USERNAME/claude0/issues).
+For general issues, use [GitHub Issues](https://github.com/lcosent/claude0/issues).
+
+---
+
+<div align="center">
+
+**[⬆ back to top](#security-policy)**
+
+</div>

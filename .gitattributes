@@ -11,8 +11,9 @@ MILESTONES.md linguist-documentation
 TURNKEY_EXPERT_SUMMARY.md linguist-documentation
 
 # Keep these visible
-README.md linguist-documentation=false
-QUICKSTART.md linguist-documentation=false
-CHANGELOG.md linguist-documentation=false
-CONTRIBUTING.md linguist-documentation=false
-SECURITY.md linguist-documentation=false
+readme.md linguist-documentation=false
+quickstart.md linguist-documentation=false
+changelog.md linguist-documentation=false
+contributing.md linguist-documentation=false
+security.md linguist-documentation=false
+CODE_OF_CONDUCT.md linguist-documentation=false

@@ -12,7 +12,7 @@ Thank you for your interest in making claude0 better.
 
 ## Code of Conduct
 
-Be respectful, constructive, and professional in all interactions.
+Be respectful, constructive, and professional in all interactions. Please read our full [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## How to Contribute
 

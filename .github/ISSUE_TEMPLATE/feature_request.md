@@ -6,31 +6,28 @@ labels: enhancement
 assignees: ''
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Feature Description
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+A clear and concise description of the feature you'd like to see.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Problem It Solves
 
-**How does this fit with claude0 goals?**
-- [ ] Reduces token usage
-- [ ] Improves context compilation
-- [ ] Enhances learning/tuning
-- [ ] Better developer experience
-- [ ] Other: [explain]
+Describe the problem this feature would solve or the use case it addresses.
 
-**Which milestone does this relate to?**
-- [ ] M1: Compiler
-- [ ] M2: Router
-- [ ] M3: Contracts
-- [ ] M4: Loop
-- [ ] M5: Learning
-- [ ] M6: Dashboard
-- [ ] M7: Cross-project
-- [ ] New milestone (M8+)
+## Proposed Solution
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+Describe how you envision this feature working.
+
+## Alternatives Considered
+
+Have you considered any alternative solutions or features?
+
+## Additional Context
+
+Add any other context, mockups, or examples about the feature request here.
+
+## Would you be willing to contribute?
+
+- [ ] Yes, I'd like to work on this
+- [ ] I can help test this
+- [ ] No, just suggesting
