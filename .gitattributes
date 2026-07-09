@@ -1,0 +1,18 @@
+# Hide development and planning files from GitHub's file browser
+BACKLOG.md linguist-documentation
+CACHE_MONITOR_SPEC.md linguist-documentation
+DESIGN.md linguist-documentation
+DOCS_VISIBILITY.md linguist-documentation
+GITHUB_READY.md linguist-documentation
+GITHUB_SETUP.md linguist-documentation
+IMPLEMENTATION.md linguist-documentation
+M24_SUMMARY.md linguist-documentation
+MILESTONES.md linguist-documentation
+TURNKEY_EXPERT_SUMMARY.md linguist-documentation
+
+# Keep these visible
+README.md linguist-documentation=false
+QUICKSTART.md linguist-documentation=false
+CHANGELOG.md linguist-documentation=false
+CONTRIBUTING.md linguist-documentation=false
+SECURITY.md linguist-documentation=false
