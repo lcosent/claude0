@@ -131,6 +131,27 @@ function main() {
     `${blobBefore}→${blobAfter} (${reduction.toFixed(1)}%)`
   );
 
+  // 7b. Salience-aware elision: a failing assertion buried in the MIDDLE of a
+  //     long, otherwise-uniform run must survive compression. Blind head/tail
+  //     truncation dropped exactly this — the one line the model needs to debug.
+  const buriedFailure = [
+    ...Array.from({ length: 120 }, (_, i) => `ok ${i + 1} - test case ${i + 1} passed`),
+    "not ok 121 - AssertionError: expected 200 but got 500 at handler.ts:42",
+    ...Array.from({ length: 120 }, (_, i) => `ok ${i + 122} - test case ${i + 122} passed`),
+  ].join("\n");
+  const buriedOut = compressNative(buriedFailure);
+  check(
+    "compress: buried failure line survives elision",
+    buriedOut.includes("not ok 121 - AssertionError: expected 200 but got 500"),
+    `out lines=${buriedOut.split("\n").length}`
+  );
+  check(
+    "compress: still elides the low-value middle around it",
+    buriedOut.includes("elided by claude0") &&
+      encode(buriedOut).length < encode(buriedFailure).length,
+    `${encode(buriedFailure).length}→${encode(buriedOut).length} tokens`
+  );
+
   // 8. symbol-query returns a real type via TS Language Service (this IS a TS repo).
   const ans = querySymbol({ file: "src/compiler.ts", symbol: "tokenCount" }, repoRoot);
   check(

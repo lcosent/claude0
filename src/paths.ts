@@ -51,3 +51,13 @@ export function policyPath(repoRoot: string): string {
 export function claudeSettingsPath(repoRoot: string): string {
   return path.join(repoRoot, ".claude", "settings.json");
 }
+
+/** Where compress-output stashes originals so compression stays reversible. */
+export function outputsDir(repoRoot: string): string {
+  return path.join(claude0Dir(repoRoot), "outputs");
+}
+
+/** Backup of the user's CLAUDE.md, written by `init` before it stubs the file. */
+export function claudeMdBackupPath(repoRoot: string): string {
+  return path.join(claude0Dir(repoRoot), "CLAUDE.md.backup");
+}

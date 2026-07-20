@@ -63,10 +63,18 @@ flowchart TB
 
 ## Request data flow — the intercept pipe
 
+This is only honest because `init` first **migrates** the project's `CLAUDE.md`
+into tagged rules under `.claude0/rules/` and replaces the file with a stub — so
+Claude Code no longer loads the full rule set every turn, and the compiler's
+`baseline_tokens` reflects the user's real content rather than something claude0
+invented. Sections that match no keyword are tagged `always` and injected on
+every prompt, so nothing is silently dropped. The original is backed up and
+restored on `uninstall`.
+
 When Claude Code submits a prompt, the `UserPromptSubmit` hook calls
-`claude0 intercept`. ClaudeZero compiles minimal context, injects it back, and
-logs the real input-side token cost. A non-claude0 repo or any failure exits
-cleanly without disturbing the prompt.
+`claude0 intercept`. ClaudeZero compiles minimal context (the matched rules plus
+any `always` rules), injects it back, and logs the real input-side token cost. A
+non-claude0 repo or any failure exits cleanly without disturbing the prompt.
 
 ```mermaid
 sequenceDiagram
@@ -83,13 +91,44 @@ sequenceDiagram
         Hook-->>CC: exit 0 (inject nothing)
     else claude0 repo
         Hook->>Hook: inferTags(prompt) → [security, typescript, ...]
-        Hook->>Comp: compile(prompt, tags)
-        Comp-->>Hook: bundle (only matched rules)
+        Hook->>Comp: compile(prompt, tags + always)
+        Comp-->>Hook: bundle (matched rules + always rules)
         Hook->>Led: log tokens_in vs baseline_tokens (real)
         Hook-->>CC: additionalContext (compiled rules)
         CC->>User: response with minimal context
     end
 ```
+
+## Reversible output compression — the PostToolUse pipe
+
+A second hook, `PostToolUse`, runs `claude0 compress-output` on verbose tool
+results before they reach the model. Compression is **salience-aware** (error,
+failure, assertion, and stack-frame lines are kept wherever they appear) and
+**reversible**: the full original is stashed under `.claude0/outputs/<id>.txt`
+and the compressed view carries a `claude0 recall <id>` handle. The model gets a
+small view by default and can pull the untrimmed original on demand — so shrinking
+output never costs information.
+
+```mermaid
+sequenceDiagram
+    participant CC as Claude Code
+    participant Hook as claude0 compress-output
+    participant Store as .claude0/outputs/
+    participant Led as LEDGER
+
+    CC->>Hook: PostToolUse {tool_response.stdout} (stdin JSON)
+    Hook->>Hook: compressNative (filter → dedupe → salience-elide)
+    alt output shrank
+        Hook->>Store: stash original → id
+        Hook->>Led: log tokens_before vs tokens_after (real)
+        Hook-->>CC: updatedToolOutput = compressed + "recall id"
+    else nothing to gain
+        Hook-->>CC: exit 0 (leave output untouched)
+    end
+```
+
+Later, `claude0 recall <id>` reads the stashed file back verbatim (ids are
+content hashes, validated to stay inside the outputs dir; oldest are pruned).
 
 ## Capability selection — automatic, per-repo aware
 

@@ -8,12 +8,14 @@ import {
   rulesDir,
   policyPath,
   claudeSettingsPath,
+  claudeMdBackupPath,
 } from "./paths";
 import {
   SAMPLE_RULES,
   DEFAULT_POLICY,
   TURNKEY_POLICY,
   EXPERT_POLICY,
+  CLAUDE_MD_STUB,
   HOOK_CONFIG,
   HOOK_EVENT,
   HOOK_COMMAND,
@@ -21,6 +23,8 @@ import {
   POST_TOOL_COMMAND,
   README,
 } from "./init-templates";
+import { migrateContent, renderRuleFile } from "./migrate";
+import { recallOutput } from "./output-store";
 import { readMode, writeMode, upgradeToExpert, downgradeToTurnkey, isExpertMode } from "./mode";
 import { interceptFromStdin } from "./intercept";
 import { compressOutputFromStdin } from "./compress-output";
@@ -53,9 +57,32 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
   fs.mkdirSync(claude0DirPath, { recursive: true });
   fs.mkdirSync(rulesDirPath, { recursive: true });
 
-  // Write sample rules
-  for (const [filename, content] of Object.entries(SAMPLE_RULES)) {
-    fs.writeFileSync(path.join(rulesDirPath, filename), content);
+  // Migrate an existing CLAUDE.md into tagged rules if there is one. This is
+  // what makes the savings real: without it, claude0 would ADD sample rules on
+  // top of a CLAUDE.md that Claude Code still reads in full every prompt. After
+  // migration, the full file no longer loads each turn and the ledger baseline
+  // (full rule set) reflects the user's real content, not claude0's invention.
+  let migratedCount = 0;
+  const claudeMdPath = !opts.global ? path.join(targetDir, "CLAUDE.md") : "";
+  const existingMd =
+    claudeMdPath && fs.existsSync(claudeMdPath)
+      ? fs.readFileSync(claudeMdPath, "utf8")
+      : "";
+
+  if (existingMd.trim()) {
+    // Back up the original BEFORE writing anything, then split into rules.
+    fs.writeFileSync(claudeMdBackupPath(targetDir), existingMd);
+    for (const rule of migrateContent(existingMd)) {
+      fs.writeFileSync(path.join(rulesDirPath, rule.file), renderRuleFile(rule));
+      migratedCount++;
+    }
+    // Stub the file so Claude Code stops reading the full rule set every prompt.
+    fs.writeFileSync(claudeMdPath, CLAUDE_MD_STUB);
+  } else {
+    // Fresh project with no CLAUDE.md — seed starter rules the user can edit.
+    for (const [filename, content] of Object.entries(SAMPLE_RULES)) {
+      fs.writeFileSync(path.join(rulesDirPath, filename), content);
+    }
   }
 
   // Write mode-appropriate policy
@@ -100,7 +127,13 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
 
     console.log(`ClaudeZero initialized in ${targetDir} (${mode} mode)`);
     console.log(`\nCreated:`);
-    console.log(`  .claude0/rules/        (${Object.keys(SAMPLE_RULES).length} sample rules)`);
+    if (migratedCount > 0) {
+      console.log(`  .claude0/rules/        (${migratedCount} rules migrated from CLAUDE.md)`);
+      console.log(`  .claude0/CLAUDE.md.backup  (your original — restored on uninstall)`);
+      console.log(`  CLAUDE.md              (stubbed; full rules now load per-prompt)`);
+    } else {
+      console.log(`  .claude0/rules/        (${Object.keys(SAMPLE_RULES).length} starter rules — no CLAUDE.md found)`);
+    }
     console.log(`  .claude0/policy.yaml   (routing policy${mode === "turnkey" ? " — managed" : ""})`);
     console.log(`  .claude0/mode.json     (${mode} mode)`);
     console.log(`  .claude0/ledger.jsonl  (empty log)`);
@@ -218,9 +251,22 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
     }
   }
 
+  // Restore the user's CLAUDE.md from the migration backup BEFORE we delete
+  // .claude0/ (which holds the backup). Reversibility is the whole point of the
+  // backup — uninstall must undo the stubbing init did.
+  let restoredClaudeMd = false;
+  if (!opts.global) {
+    const backup = claudeMdBackupPath(targetDir);
+    if (fs.existsSync(backup)) {
+      fs.writeFileSync(path.join(targetDir, "CLAUDE.md"), fs.readFileSync(backup));
+      restoredClaudeMd = true;
+    }
+  }
+
   // Remove .claude0/
   fs.rmSync(claude0DirPath, { recursive: true, force: true });
   console.log(`Removed: ${claude0DirPath}`);
+  if (restoredClaudeMd) console.log(`Restored: CLAUDE.md (from backup)`);
 
   if (!opts.global) {
     // Remove hook from .claude/settings.json
@@ -548,6 +594,22 @@ function main() {
         void compressOutputFromStdin(readStdin);
         break;
 
+      case "recall": {
+        const root = requireClaudeZeroRoot();
+        const id = args[0];
+        if (!id) {
+          console.error("Usage: claude0 recall <id>");
+          process.exit(1);
+        }
+        const original = recallOutput(id, root);
+        if (original === null) {
+          console.error(`No stashed output for id "${id}" (it may have been pruned).`);
+          process.exit(1);
+        }
+        process.stdout.write(original);
+        break;
+      }
+
       case "bloat": {
         const root = requireClaudeZeroRoot();
         if (args.includes("--fix")) {
@@ -585,8 +647,9 @@ Usage:
   claude0 policy <pull|push>             Sync routing policy with the central store (repo overrides win)
   claude0 learn [--apply]                Propose rule changes from ledger evidence
   claude0 bloat [--fix] [--dry-run]      Detect context bloat and optionally auto-fix
+  claude0 recall <id>                    Print the full original of a compressed tool output
   claude0 turnkey                        Switch to turnkey mode (managed policy)
-  claude0 uninstall [--global] [--force] Remove .claude0/ and hooks
+  claude0 uninstall [--global] [--force] Remove .claude0/ and hooks (restores CLAUDE.md)
   claude0 intercept                      (Internal: called by Claude Code hook)
 
 Examples:
@@ -599,13 +662,13 @@ After init, claude0 runs transparently — just use Claude Code normally.
 `);
         } else {
           // Turnkey mode: show only essential commands
-          console.log(`ClaudeZero — Save 65% on Claude Code tokens, automatically
+          console.log(`ClaudeZero — cut Claude Code token usage, automatically
 
 Usage:
   claude0 init [--expert]         Set up claude0 in your project
   claude0 status                  Check how much you're saving
   claude0 expert                  Unlock advanced features
-  claude0 uninstall [--force]     Remove claude0
+  claude0 uninstall [--force]     Remove claude0 (restores your CLAUDE.md)
 
 Examples:
   claude0 init                    # One command, fully set up

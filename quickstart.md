@@ -4,7 +4,7 @@
 
 ### Set up claude0 in 30 seconds
 
-Cut your Claude Code bill by 65%. No workflow changes.
+Cut Claude Code token usage — automatically. No workflow changes.
 
 <br/>
 
@@ -27,12 +27,14 @@ cd your-project
 claude0 init
 ```
 
-You'll see:
+You'll see (when you already have a `CLAUDE.md`):
 ```
 ClaudeZero initialized in /your/project (turnkey mode)
 
 Created:
-  .claude0/rules/        (6 sample rules)
+  .claude0/rules/        (5 rules migrated from CLAUDE.md)
+  .claude0/CLAUDE.md.backup  (your original — restored on uninstall)
+  CLAUDE.md              (stubbed; full rules now load per-prompt)
   .claude0/policy.yaml   (routing policy — managed)
   .claude0/mode.json     (turnkey mode)
   .claude0/ledger.jsonl  (empty log)
@@ -40,6 +42,8 @@ Created:
 
 Next: Just use Claude Code normally. ClaudeZero works transparently.
 ```
+
+Your `CLAUDE.md` is split into tagged rules and replaced with a small stub, so Claude Code no longer reads the whole file every prompt. The original is backed up and restored if you ever `claude0 uninstall`. (No `CLAUDE.md` yet? `init` seeds a few starter rules instead.)
 
 **That's the entire setup.** You're done.
 
@@ -68,28 +72,27 @@ claude0 status
 ```
 ClaudeZero Status
 ─────────────────────────────────
-✓ Saving 65.2% on average
+✓ Saving 41.8% on average          ← your real number, from the ledger
 ✓ 47 runs, 93.6% success rate
 ✓ Using mostly Sonnet, rarely Opus
 
 Everything working well.
 ```
 
-That's it. You're saving tokens.
+The percentage is computed from `.claude0/ledger.jsonl` — real token counts for your runs, not a marketing figure. Run `claude0 report` for the full per-milestone breakdown.
 
 ---
 
 ## What just happened?
 
-When you ran `claude0 init`, it created:
+When you ran `claude0 init`, it:
 
-### 1. Six starter rules
-- `typescript-style.md` — TypeScript conventions
-- `security.md` — Security guidelines
-- `testing.md` — Testing practices
-- `git-safety.md` — Git safety rules
-- `react-ui.md` — React UI patterns
-- `commits.md` — Commit message format
+### 1. Migrated your CLAUDE.md into tagged rules
+Each section of your `CLAUDE.md` becomes a rule under `.claude0/rules/`, tagged by
+topic (typescript, security, testing, git, …). Sections it can't confidently tag
+are marked `always` and load on every prompt — nothing is ever silently dropped.
+Your original is backed up; the file itself is stubbed so it no longer loads in
+full each turn. (No `CLAUDE.md`? A few starter rules are seeded instead.)
 
 ### 2. A routing policy
 Decides which model to use:
@@ -97,11 +100,12 @@ Decides which model to use:
 - Normal work → Sonnet (balanced)
 - Hard problems → Opus (powerful)
 
-### 3. A hook
-Connects to Claude Code so claude0 runs automatically on every prompt.
+### 3. Two hooks
+- **UserPromptSubmit** — injects only the relevant rules for each prompt
+- **PostToolUse** — compresses verbose command output before it reaches the model, keeping error/failure lines and stashing the full original for `claude0 recall <id>`
 
 ### 4. A log
-Every run gets recorded: tokens saved, model used, pass/fail.
+Every run gets recorded to `.claude0/ledger.jsonl`: real tokens in vs baseline, model used, pass/fail.
 
 ---
 
@@ -131,7 +135,7 @@ Claude receives only what matters:
   • Security rules
   • Testing rules
 
-920 tokens (67% saved)
+920 tokens   ← illustrative; your real numbers are in the ledger
 ```
 
 ClaudeZero reads your prompt, figures out you're fixing a bug (not working with Git or React), and skips the irrelevant rules.
@@ -168,7 +172,13 @@ A: No. If claude0 fails for any reason, it exits cleanly and your prompt goes th
 A: Run `claude0 status` anytime.
 
 **Q: Can I turn it off?**  
-A: Yes. `claude0 uninstall` removes everything.
+A: Yes. `claude0 uninstall` removes everything and restores your original `CLAUDE.md` from the backup.
+
+**Q: What happens to my CLAUDE.md?**  
+A: `init` splits it into tagged rules and replaces it with a small stub, so Claude Code stops re-reading the whole file on every prompt. Your original is saved to `.claude0/CLAUDE.md.backup` and restored on uninstall.
+
+**Q: Does compressing tool output lose information?**  
+A: No — it's reversible. Compression keeps error and failure lines and stashes the full original; if Claude needs the untrimmed output it runs `claude0 recall <id>` (the id is printed in the compressed view).
 
 **Q: Does it slow things down?**  
 A: No. The hook runs in under 1ms. Claude actually responds *faster* because there's less to process.
@@ -183,6 +193,6 @@ Go use Claude Code and save tokens.
 
 <br/>
 
-**[Read full docs](readme.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[Read full docs](readme.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
 
 </div>

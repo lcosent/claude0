@@ -21,34 +21,51 @@ export interface HookOutput {
 // Keyword → rule-tag inference. Maps prompt language to the tags the compiler
 // selects rules by. Deliberately simple and explicit (no ML): a word in the
 // prompt implies a concern. Tags with no keyword hit are simply not selected.
-const TAG_KEYWORDS: Record<string, string[]> = {
-  typescript: ["typescript", "ts", "type", "interface", "tsx", "generic"],
+// Keywords match at a word boundary as a prefix ("auth" → "authentication",
+// but "pr" would NOT bleed into "project"). Bare 2-char stems like "ts"/"pr"
+// were removed: as substrings they mis-tagged "tests", "project", "props", etc.
+// — harmless-ish for a prompt, but corrupting when migration tags rule content.
+export const TAG_KEYWORDS: Record<string, string[]> = {
+  typescript: ["typescript", "type", "interface", "tsx", "generic"],
   style: ["refactor", "clean up", "rename", "lint", "format"],
   testing: ["test", "spec", "coverage", "regression", "assert"],
   security: ["auth", "sanitize", "injection", "xss", "csrf", "secret", "token", "password", "vulnerab"],
   react: ["react", "component", "hook", "jsx", "tsx", "props", "state"],
-  ui: ["ui", "button", "modal", "css", "style", "layout", "page", "screen"],
+  ui: ["ui", "button", "modal", "css", "layout", "page", "screen"],
   frontend: ["frontend", "browser", "dom", "render"],
-  git: ["git", "commit", "branch", "rebase", "merge", "push", "pull request", "pr"],
+  git: ["git", "commit", "branch", "rebase", "merge", "push", "pull request"],
   commits: ["commit message", "commit", "changelog"],
   safety: ["force", "reset", "delete", "drop", "destructive", "hard reset"],
 };
 
 /**
+ * All tags whose keywords appear in `text`, regardless of what rules exist.
+ * Pure (no repo I/O) so it's reusable for CLAUDE.md migration, where we tag
+ * rule *content* rather than a prompt. Case-insensitive substring match.
+ */
+export function matchTags(text: string): string[] {
+  const lower = text.toLowerCase();
+  const hits = (kw: string) =>
+    new RegExp("\\b" + kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(lower);
+  return Object.entries(TAG_KEYWORDS)
+    .filter(([, keywords]) => keywords.some(hits))
+    .map(([tag]) => tag);
+}
+
+/**
  * Infers rule tags from prompt text. Returns the tags that have at least one
  * keyword hit AND exist among the repo's actual rules (so we never select a
- * tag no rule can satisfy). Case-insensitive substring match.
+ * tag no rule can satisfy).
  */
 export function inferTags(prompt: string, repoRoot: string): string[] {
-  const lower = prompt.toLowerCase();
   const availableTags = new Set(loadRules(repoRoot).flatMap((r) => r.tags));
-  const hits: string[] = [];
-  for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
-    if (!availableTags.has(tag)) continue;
-    if (keywords.some((kw) => lower.includes(kw))) hits.push(tag);
-  }
-  return hits;
+  return matchTags(prompt).filter((tag) => availableTags.has(tag));
 }
+
+// Rules tagged `always` are injected on every prompt regardless of keywords.
+// Migration assigns this to any CLAUDE.md section it can't confidently tag, so
+// user instructions are never silently dropped — they cost tokens but survive.
+export const ALWAYS_TAG = "always";
 
 /**
  * Renders a compiled bundle as the context string injected into the prompt.
@@ -84,7 +101,9 @@ export function runIntercept(input: HookInput, repoRoot: string): InterceptResul
 
   let bundle: Bundle;
   try {
-    bundle = compile(prompt, tags, tags, repoRoot);
+    // Include always-rules on every prompt; keep requiredTags = inferred tags so
+    // the silent-drop guard still only fires on genuinely requested concerns.
+    bundle = compile(prompt, [...tags, ALWAYS_TAG], tags, repoRoot);
   } catch {
     // Silent-drop guard tripped, or no rules matched. Inject nothing rather
     // than risk a wrong partial context; log the miss so it's auditable.

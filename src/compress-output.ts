@@ -1,6 +1,7 @@
 import { compressNative } from "./integrations/compress";
 import { findClaudeZeroRoot } from "./paths";
 import { appendLedger } from "./ledger";
+import { stashOutput } from "./output-store";
 import { encode } from "gpt-tokenizer";
 
 // `claude0 compress-output` — PostToolUse hook body. Reads the tool-result JSON
@@ -111,11 +112,27 @@ export async function compressOutputFromStdin(readStdin: () => Promise<string>):
       input.tool_response && typeof input.tool_response === "object"
         ? input.tool_response
         : {};
+
+    // Stash the full original and tell the model how to get it back. Elision is
+    // salience-aware but never certain to keep everything the model wants, so we
+    // make it reversible: the compressed view always carries a recall handle.
+    let stdout = outcome.compressed;
+    if (root) {
+      try {
+        const id = stashOutput(outcome.original, root);
+        stdout +=
+          `\n\n[claude0: output compressed ${outcome.tokens_before}→${outcome.tokens_after} tokens. ` +
+          `Full original preserved — run \`claude0 recall ${id}\` if you need it.]`;
+      } catch {
+        // stash is best-effort; still emit the compressed view without a handle
+      }
+    }
+
     const envelope = {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         updatedToolOutput: {
-          stdout: outcome.compressed,
+          stdout,
           stderr: (origResp as ToolResponse).stderr ?? "",
           interrupted: (origResp as ToolResponse).interrupted ?? false,
           isImage: (origResp as ToolResponse).isImage ?? false,

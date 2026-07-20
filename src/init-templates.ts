@@ -30,6 +30,20 @@ tags: [git, commits]
 Write commit messages that explain why, not what. Use conventional commit format: \`feat:\`, \`fix:\`, \`refactor:\`, \`docs:\`, \`test:\`. Keep commits atomic — one logical change per commit. Always review \`git diff --staged\` before committing.`,
 };
 
+// Replaces the user's CLAUDE.md after its contents are migrated into tagged
+// rules. Claude Code reads this tiny stub every prompt instead of the full file;
+// claude0's UserPromptSubmit hook injects only the relevant rules per prompt.
+export const CLAUDE_MD_STUB = `# Project rules (managed by claude0)
+
+Your original CLAUDE.md has been split into tagged rules under \`.claude0/rules/\`.
+claude0 injects only the rules relevant to each prompt, so Claude Code no longer
+reads the full rule set on every turn.
+
+- Original backed up at \`.claude0/CLAUDE.md.backup\`
+- Restore it anytime with \`claude0 uninstall\`
+- See what got compiled for a prompt: \`claude0 compile "your task" tag1,tag2\`
+`;
+
 export const TURNKEY_POLICY = `# This policy is managed by claude0 (turnkey mode).
 # Run 'claude0 expert' to unlock for manual editing.
 # Routing: haiku (cheap/fast) → sonnet (balanced) → opus (hard tasks) → fable (architecture/design)
@@ -99,9 +113,9 @@ This repository is configured with **claude0** — a deterministic orchestration
 
 ## What It Does
 
-- **Context compilation**: Every step gets minimal context (only relevant rules), not the full CLAUDE.md
-- **Token savings**: Median 60-70% reduction in input tokens
-- **Learning**: Every operation logs to \`.claude0/ledger.jsonl\` for continuous improvement
+- **Context compilation**: Every prompt gets only the relevant rules, not the full CLAUDE.md
+- **Tool-output compression**: Verbose command output is shrunk before it reaches the model, and stashed so you can \`claude0 recall\` the original
+- **Honest accounting**: Every operation logs real token counts to \`.claude0/ledger.jsonl\`; run \`claude0 report\` to see your actual savings
 - **Routing**: Picks the cheapest Anthropic tier (Haiku/Sonnet/Opus) that can pass each step
 
 ## Daily Usage

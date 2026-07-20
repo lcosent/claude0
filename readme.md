@@ -2,10 +2,10 @@
 
 # 🥤 claude0
 
-**Cut your Claude Code bill by 65%**
+**Cut Claude Code token usage — automatically**
 
-Every time you ask Claude Code something, it reads your entire `CLAUDE.md` — even the parts that don't matter.  
-**ClaudeZero sends only what's relevant.** You save ~65% on tokens, Claude responds faster, and nothing else changes.
+Every time you ask Claude Code something, it reads your entire `CLAUDE.md` — even the parts that don't matter, and every verbose command dumps its full output into the context.  
+**ClaudeZero sends only the relevant rules and compresses tool output before it reaches the model** — reversibly, so nothing is ever lost. Your actual savings are measured per run and logged to `.claude0/ledger.jsonl`; run `claude0 report` to see yours.
 
 <br/>
 
@@ -42,7 +42,7 @@ claude0 status              # Check your savings anytime
 
 <div align="center">
 
-**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
 
 </div>
 
@@ -88,29 +88,31 @@ Claude receives:
 <br/>
 <br/>
 
-**920 tokens** (67% saved)
+**920 tokens** *(illustrative — your real numbers are in the ledger)*
 
 </td>
 </tr>
 </table>
 
-Every prompt. Automatically. You never see it happen.
+Every prompt. Automatically. You never see it happen. And whatever the compiler and the tool-output compressor actually save is written to `.claude0/ledger.jsonl` — the savings are falsifiable, not marketing.
 
 ---
 
 ## ✨ Why it matters
 
-**💸 Spend way less** — Median 63.2% savings across real runs. Measured and logged.
+**💸 Spend less** — Only the relevant rules are sent, and verbose tool output is compressed before it reaches the model. Your real per-run savings are measured and logged — no headline number to take on faith.
 
-**⚡️ Get answers faster** — Less context means Claude processes faster. Compressed output too.
+**↩️ Nothing lost** — Compression is reversible: the full original of every compressed output is stashed, and Claude can pull it back with `claude0 recall <id>` whenever it needs the detail.
+
+**⚡️ Get answers faster** — Less context means Claude processes faster.
 
 **🎯 Smart routing** — Simple → Haiku. Complex → Sonnet. Hard → Opus. Automatically.
 
 **🛡️ Context bloat protection** — Detects and prevents wasteful context growth before it costs you.
 
-**📊 See real numbers** — `claude0 status` shows exactly what you saved. No guessing.
+**📊 See real numbers** — `claude0 status` and `claude0 report` show exactly what you saved, straight from the ledger.
 
-**🔌 Zero friction** — After `claude0 init`, you never think about it again.
+**🔌 Zero friction** — After `claude0 init`, you never think about it again. `claude0 uninstall` restores your original `CLAUDE.md`.
 
 ---
 
@@ -141,20 +143,21 @@ Claude receives:
   • Testing rules
   • React UI rules
 
-1,100 tokens (66% saved)
+1,100 tokens   ← illustrative; your real numbers are in the ledger
 ```
 
-ClaudeZero looked at "add a login form" and skipped Git/commit rules. You never asked it to — it just knew.
+ClaudeZero looked at "add a login form" and skipped Git/commit rules. You never asked it to — it just knew. (Numbers above are illustrative — run `claude0 report` for your actual savings.)
 
 ---
 
 ## 🛠️ Commands
 
 ```bash
-claude0 init              # Set up in your project (one time)
+claude0 init              # Set up in your project (migrates your CLAUDE.md)
 claude0 status            # See your savings
+claude0 recall <id>       # Get the full original of a compressed tool output
 claude0 expert            # Unlock advanced features (optional)
-claude0 uninstall         # Remove cleanly
+claude0 uninstall         # Remove cleanly (restores your CLAUDE.md)
 ```
 
 Expert mode unlocks: `doctor`, `learn`, `bloat`, `compile`, and policy editing.
@@ -163,11 +166,14 @@ Expert mode unlocks: `doctor`, `learn`, `bloat`, `compile`, and policy editing.
 
 ## 📊 How it works
 
-1. **Analyze** — ClaudeZero reads your prompt and determines the intent
-2. **Filter** — Only relevant rules from `CLAUDE.md` are selected
-3. **Compile** — Context is optimized and compressed for Claude
-4. **Track** — Every interaction is measured for token savings
-5. **Learn** — The system improves routing decisions over time
+**At `init`** — your `CLAUDE.md` is split into tagged rules under `.claude0/rules/`, then replaced with a small stub (original backed up). Claude Code stops re-reading the full rule set on every prompt. Sections that can't be confidently tagged are marked `always` so they're never dropped — they just always load.
+
+**On every prompt** —
+1. **Analyze** — ClaudeZero reads your prompt and infers the intent (plus any `always` rules)
+2. **Filter** — Only the matching rules are injected, not the whole file
+3. **Compress** — Verbose tool output (test runs, build logs) is shrunk before it reaches the model, keeping error/failure lines and stashing the full original for `claude0 recall`
+4. **Track** — Every operation logs real token counts to `.claude0/ledger.jsonl`
+5. **Route** — The cheapest model tier that can pass the step is chosen
 
 See [Architecture](docs/ARCHITECTURE.md) for technical details.
 
@@ -185,7 +191,7 @@ We welcome contributions! See [CONTRIBUTING.md](contributing.md) for guidelines.
 
 <div align="center">
 
-**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20my%20Claude%20Code%20bill%20by%2065%25%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
 
 **[Quickstart](quickstart.md)** · **[Issues](https://github.com/lcosent/claude0/issues)** · **[Discussions](https://github.com/lcosent/claude0/discussions)** · **[Contributing](contributing.md)**
 

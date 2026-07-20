@@ -4,8 +4,8 @@ import { Capability, CapabilityAvailability, CapabilityResult, RepoEnv } from ".
 
 // output-compress: shrink verbose command output before it reaches the model.
 // Native reimplementation of rtk's four heuristics; uses the rtk binary as an
-// accelerator when it's on PATH. Applies to the internal LOOP's command output
-// in M8 (real user Bash output via PostToolUse is deferred — see plan).
+// accelerator when it's on PATH. Runs both on the internal LOOP's command output
+// and on real user Bash output via the PostToolUse hook (see compress-output.ts).
 
 function dedupe(lines: string[]): string[] {
   // Collapse consecutive identical lines into "line  (xN)".
@@ -35,22 +35,67 @@ function filterNoise(lines: string[]): string[] {
   return out;
 }
 
-function truncateMiddle(lines: string[], keep = 40): string[] {
-  // Keep head + tail, elide the middle of very long output.
+// Lines that carry the signal a model actually needs: errors, failures, stack
+// frames, assertions. Blind head/tail truncation elides exactly these when they
+// land in the middle of long output (e.g. the one failing assertion in a 2000-
+// line test run), which is the worst possible thing to drop. So we always retain
+// them regardless of position.
+// Matched case-insensitively as substrings, not whole words: real diagnostics
+// arrive as CamelCase (AssertionError, TypeError) and multi-word markers ("not
+// ok"), which \b-anchored patterns miss. A false positive only keeps one extra
+// line; a false negative drops the exact line the model needed — so we bias
+// hard toward keeping. Plus stack-frame shapes (JS "at x:1:2", Python 'File …').
+const SALIENT =
+  /error|errno|exception|traceback|fail|assert|panic|fatal|segfault|core dumped|unhandled|rejected|denied|refused|not ok|✗|✖|❌|^\s*at\s+.+:\d+(?::\d+)?\)?\s*$|^\s*File ".+", line \d+/i;
+
+// How many salient lines to keep before we stop protecting them. A wall of
+// errors is still bounded; upstream dedupe/filter has already collapsed repeats.
+const SALIENT_CAP = 200;
+// Lines of context kept immediately around each salient line.
+const SALIENT_CONTEXT = 1;
+
+function elideMiddle(lines: string[], keep = 40): string[] {
+  // Keep head + tail for orientation, always keep salient lines (with a little
+  // context) wherever they are, and collapse only the low-value runs between.
+  // With no salient middle lines this reduces exactly to the old head/tail form.
   if (lines.length <= keep) return lines;
+
   const head = Math.ceil(keep / 2);
   const tail = Math.floor(keep / 2);
-  return [
-    ...lines.slice(0, head),
-    `… (${lines.length - keep} lines elided by claude0) …`,
-    ...lines.slice(lines.length - tail),
-  ];
+  const keepIdx = new Set<number>();
+
+  for (let i = 0; i < head; i++) keepIdx.add(i);
+  for (let i = lines.length - tail; i < lines.length; i++) keepIdx.add(i);
+
+  let salientKept = 0;
+  for (let i = 0; i < lines.length && salientKept < SALIENT_CAP; i++) {
+    if (!SALIENT.test(lines[i])) continue;
+    salientKept++;
+    const from = Math.max(0, i - SALIENT_CONTEXT);
+    const to = Math.min(lines.length - 1, i + SALIENT_CONTEXT);
+    for (let j = from; j <= to; j++) keepIdx.add(j);
+  }
+
+  const out: string[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    if (keepIdx.has(i)) {
+      out.push(lines[i]);
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < lines.length && !keepIdx.has(j)) j++;
+    out.push(`… (${j - i} lines elided by claude0) …`);
+    i = j;
+  }
+  return out;
 }
 
-/** Native compression: filter → dedupe → truncate. Deterministic. */
+/** Native compression: filter → dedupe → salience-aware elision. Deterministic. */
 export function compressNative(text: string): string {
   const lines = text.split("\n");
-  return truncateMiddle(dedupe(filterNoise(lines))).join("\n");
+  return elideMiddle(dedupe(filterNoise(lines))).join("\n");
 }
 
 /** Accelerator: pipe through rtk if present. Falls back to native on any error. */
@@ -78,7 +123,7 @@ export const compressCapability: Capability = {
         accelerator: "rtk",
       };
     }
-    return { status: "native", detail: "native (filter/dedupe/truncate)" };
+    return { status: "native", detail: "native (filter/dedupe/salience-elide)" };
   },
 
   run(input: string, env: RepoEnv): CapabilityResult {

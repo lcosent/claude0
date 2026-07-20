@@ -48,7 +48,7 @@ design-synthesis: fable
 ```
 ClaudeZero Status
 ─────────────────────────────────
-✓ Saving 65.2% on average
+✓ Saving 41.8% on average          ← real, computed from the ledger
 ✓ 47 runs, 93.6% success rate
 ✓ Using mostly Sonnet, rarely Opus
 
