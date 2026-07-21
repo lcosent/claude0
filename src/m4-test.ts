@@ -1,3 +1,4 @@
+import { makeSandbox, copyRealRules } from "./test-sandbox";
 // M4 drives the real loop, which now calls the model via src/llm.ts. Force the
 // deterministic offline stub so this milestone test stays reproducible and
 // needs no subscription/network.
@@ -7,7 +8,9 @@ import { runM4Loop } from "./m4-loop";
 import { readLedger } from "./ledger";
 
 async function main() {
-  const repoRoot = process.cwd();
+  // Sandboxed: runM4Loop appends ledger rows.
+  const repoRoot = makeSandbox("m4");
+  copyRealRules(repoRoot);
   const hypothesis = "Add a user profile page with avatar upload";
 
   console.log(`Running M4 loop: ${hypothesis}`);

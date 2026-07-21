@@ -161,7 +161,15 @@ export async function interceptFromStdin(readStdin: () => Promise<string>): Prom
   let input: HookInput = {};
   if (raw.trim()) {
     try {
-      input = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // JSON.parse("null") returns null and JSON.parse("3") a number — both are
+      // valid JSON that would make every property access below throw. Anything
+      // that isn't a plain object is treated as "no usable payload".
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        input = parsed;
+      } else {
+        process.exit(0);
+      }
     } catch {
       // Not JSON (e.g. invoked manually) — nothing to compile against.
       process.exit(0);

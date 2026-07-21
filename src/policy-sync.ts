@@ -64,7 +64,7 @@ function readPolicyFile(file: string): PolicyMap {
 }
 
 const HEADER =
-  "# ClaudeZero routing policy\n# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)";
+  "# claude0 routing policy\n# Maps step types to Anthropic model tiers (haiku/sonnet/opus/fable)";
 
 export interface SyncResult {
   central: string;

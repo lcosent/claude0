@@ -1,6 +1,10 @@
 import { encode } from "gpt-tokenizer";
 import { validateWithRepair, StepOutputSchema } from "./contract";
 import { appendLedger } from "./ledger";
+import { makeSandbox } from "./test-sandbox";
+
+// Sandboxed ledger — never append test rows to the developer's real ledger.
+const LEDGER_ROOT = makeSandbox("m3");
 
 interface Case {
   id: string;
@@ -72,7 +76,7 @@ function main() {
       rules_included: [],
       rules_excluded: [],
       note: `adversarial=${c.adversarial} repaired=${res.repaired}`,
-    });
+    }, LEDGER_ROOT);
 
     console.log(
       `${c.id.padEnd(20)} adversarial=${c.adversarial ? "y" : "n"} valid=${res.valid} repaired=${res.repaired} schemaTok=${schemaTok} freeTok=${freeTok}`

@@ -50,7 +50,7 @@ Rules in `.claude0/rules/*.md` may contain:
 ### Hook Execution
 
 The `claude0 intercept` hook (planned for v0.2) will run on every Claude Code prompt. Ensure:
-- ClaudeZero binary is from trusted source
+- claude0 binary is from trusted source
 - `.claude/settings.json` hook command is not modified maliciously
 - File permissions on `.claude0/` prevent unauthorized modification
 

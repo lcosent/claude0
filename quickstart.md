@@ -18,6 +18,13 @@ Cut Claude Code token usage — automatically. No workflow changes.
 npm install -g claude0
 ```
 
+To update later:
+
+```bash
+npm install -g claude0@latest
+claude0 upgrade   # in each initialized project — registers newly added hooks
+```
+
 ---
 
 ## Set up (one time)
@@ -29,7 +36,7 @@ claude0 init
 
 You'll see (when you already have a `CLAUDE.md`):
 ```
-ClaudeZero initialized in /your/project (turnkey mode)
+claude0 initialized in /your/project (turnkey mode)
 
 Created:
   .claude0/rules/        (5 rules migrated from CLAUDE.md)
@@ -40,7 +47,7 @@ Created:
   .claude0/ledger.jsonl  (empty log)
   .claude/settings.json  (hook configured)
 
-Next: Just use Claude Code normally. ClaudeZero works transparently.
+Next: Just use Claude Code normally. claude0 works transparently.
 ```
 
 Your `CLAUDE.md` is split into tagged rules and replaced with a small stub, so Claude Code no longer reads the whole file every prompt. The original is backed up and restored if you ever `claude0 uninstall`. (No `CLAUDE.md` yet? `init` seeds a few starter rules instead.)
@@ -59,7 +66,7 @@ claude> add a login form
 claude> refactor the API handler
 ```
 
-ClaudeZero runs invisibly on every prompt. You won't see it work.
+claude0 runs invisibly on every prompt. You won't see it work.
 
 ---
 
@@ -70,7 +77,7 @@ claude0 status
 ```
 
 ```
-ClaudeZero Status
+claude0 Status
 ─────────────────────────────────
 ✓ Saving 41.8% on average          ← your real number, from the ledger
 ✓ 47 runs, 93.6% success rate
@@ -138,7 +145,7 @@ Claude receives only what matters:
 920 tokens   ← illustrative; your real numbers are in the ledger
 ```
 
-ClaudeZero reads your prompt, figures out you're fixing a bug (not working with Git or React), and skips the irrelevant rules.
+claude0 reads your prompt, figures out you're fixing a bug (not working with Git or React), and skips the irrelevant rules.
 
 **You never tell it what to skip. It figures it out.**
 
@@ -181,7 +188,8 @@ A: `init` splits it into tagged rules and replaces it with a small stub, so Clau
 A: No — it's reversible. Compression keeps error and failure lines and stashes the full original; if Claude needs the untrimmed output it runs `claude0 recall <id>` (the id is printed in the compressed view).
 
 **Q: Does it slow things down?**  
-A: No. The hook runs in under 1ms. Claude actually responds *faster* because there's less to process.
+A: The hooks run under a 150ms budget that CI enforces on every commit (see `src/m19-test.ts`);
+in practice they land well below it. Claude also has less to process, which offsets the hook cost.
 
 ---
 
@@ -193,6 +201,6 @@ Go use Claude Code and save tokens.
 
 <br/>
 
-**[Read full docs](readme.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[Read full docs](readme.md)** · **[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20claude0&url=https://github.com/lcosent/claude0)**
 
 </div>

@@ -24,17 +24,34 @@ export function loadRules(repoRoot?: string): Rule[] {
     return [];
   }
 
-  return fs
-    .readdirSync(rulesDirectory)
-    .filter((f) => f.endsWith(".md"))
-    .map((f) => {
-      const raw = fs.readFileSync(path.join(rulesDirectory, f), "utf8");
-      const match = raw.match(/^---\r?\ntags:\s*\[([^\]]*)\]\r?\n---\r?\n([\s\S]*)$/);
-      if (!match) throw new Error(`malformed rule frontmatter: ${f}`);
-      const tags = match[1].split(",").map((t) => t.trim());
-      const body = match[2].trim();
-      return { file: f, tags, body };
+  // Skip-and-warn rather than throw. A single unparseable file — a stray
+  // README, a hand-edited rule — used to propagate out through the intercept
+  // hook's bare catch and turn claude0 into a silent no-op indefinitely: no
+  // context injected, no ledger line, exit 0, nothing to notice. One bad file
+  // now costs one rule, and says so on stderr (which never reaches the model).
+  const rules: Rule[] = [];
+  for (const f of fs.readdirSync(rulesDirectory).filter((f) => f.endsWith(".md"))) {
+    let raw: string;
+    try {
+      raw = fs.readFileSync(path.join(rulesDirectory, f), "utf8");
+    } catch {
+      console.error(`claude0: skipping unreadable rule file ${f}`);
+      continue;
+    }
+    const match = raw.match(/^---\r?\ntags:\s*\[([^\]]*)\]\r?\n---\r?\n([\s\S]*)$/);
+    if (!match) {
+      console.error(
+        `claude0: skipping ${f} — malformed rule frontmatter (expected '---\\ntags: [...]\\n---')`
+      );
+      continue;
+    }
+    rules.push({
+      file: f,
+      tags: match[1].split(",").map((t) => t.trim()),
+      body: match[2].trim(),
     });
+  }
+  return rules;
 }
 
 /** goal.requiredTags = tags a step MUST retain; dropping one of these is a silent-drop failure. */

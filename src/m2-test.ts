@@ -1,6 +1,10 @@
+import { makeSandbox } from "./test-sandbox";
 import { appendLedger } from "./ledger";
 import { Tier, TIER_COST, nextTier, Policy, effortForTier } from "./policy";
 import { assessRoute } from "./router";
+
+// Sandboxed ledger — never append test rows to the developer's real ledger.
+const LEDGER_ROOT = makeSandbox("m2");
 
 // Deterministic seeded RNG (mulberry32) so the simulation is reproducible.
 function rng(seed: number) {
@@ -97,7 +101,7 @@ function runRouter(steps: StepSpec[], rand: () => number) {
         rules_included: [],
         rules_excluded: [],
         note: `policy_tier=${policy[step.step]} final_tier=${tier}`,
-      });
+      }, LEDGER_ROOT);
 
       if (list.length === AUTO_DEMOTE_WINDOW) {
         // Delegate the demote decision to the shared router (M22) — same

@@ -2,8 +2,12 @@ import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 import { summarize } from "./ledger-summary";
+import { makeSandbox, withCwd } from "./test-sandbox";
 
-const LEDGER_PATH = path.join(process.cwd(), ".claude0", "ledger.jsonl");
+// Sandboxed: this file used to write to the real repo's ledger via
+// process.cwd(), destroying the developer's savings history on every run.
+const SANDBOX = makeSandbox("ledger-summary");
+const LEDGER_PATH = path.join(SANDBOX, ".claude0", "ledger.jsonl");
 
 function seed() {
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
@@ -16,7 +20,7 @@ function seed() {
 
 function main() {
   seed();
-  const summary = summarize();
+  const summary = withCwd(SANDBOX, () => summarize());
   const testM = summary.find((s) => s.milestone === "test-m");
   assert.ok(testM, "expected test-m summary to exist");
   assert.strictEqual(testM!.attempts, 2);

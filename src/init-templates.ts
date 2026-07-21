@@ -58,7 +58,7 @@ debate: sonnet
 review: sonnet
 `;
 
-export const EXPERT_POLICY = `# ClaudeZero routing policy (expert mode — edit freely)
+export const EXPERT_POLICY = `# claude0 routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 # Lower tiers are cheaper; escalation happens on contract validation failure.
 # fable is the architect tier (~2x opus) — assign it only to planning/review,
@@ -107,7 +107,7 @@ export const HOOK_CONFIG = {
   },
 };
 
-export const README = `# ClaudeZero
+export const README = `# claude0
 
 This repository is configured with **claude0** — a deterministic orchestration spine for Claude Code.
 
@@ -124,19 +124,10 @@ After initialization, claude0 is **transparent** — just use Claude Code normal
 
 \`\`\`bash
 claude> fix the auth bug
-# ClaudeZero automatically:
+# claude0 automatically:
 # - Compiles minimal context (only security, typescript, testing rules)
 # - Routes to appropriate tier (likely Sonnet for implementation)
 # - Logs tokens_in, baseline_tokens, savings to ledger
-\`\`\`
-
-## Explicit Orchestration
-
-For complex features, use the full design → plan → build → verify loop:
-
-\`\`\`bash
-claude> /claude0 build "add user authentication"
-# Runs: DESIGN (debate) → PLAN (milestones) → GATE → BUILD → VERIFY
 \`\`\`
 
 ## Reporting
@@ -152,11 +143,15 @@ claude0 report
 
 - \`.claude0/rules/*.md\` — Context rules, one concern per file, frontmatter-tagged
 - \`.claude0/policy.yaml\` — Step-to-tier routing policy (auto-tuned over time)
-- \`.claude0/ledger.jsonl\` — Append-only log of every operation
+- \`.claude0/ledger.jsonl\` — Append-only log of every operation (gitignored)
+- \`.claude0/outputs/\` — Full originals of compressed tool output, for \`claude0 recall\`
+  (gitignored: raw command output can contain secrets; pruned to the 50 most recent)
 - \`.claude/settings.json\` — Hook configuration (added by \`claude0 init\`)
 
-## Learn More
+## Updating
 
-- Design doc: [DESIGN.md](./DESIGN.md)
-- Milestones: [MILESTONES.md](./MILESTONES.md)
+\`\`\`bash
+npm install -g claude0@latest   # update the package
+claude0 upgrade                 # register any hooks added since this project was set up
+\`\`\`
 `;

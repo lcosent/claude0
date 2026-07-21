@@ -2,8 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { readLedger, LedgerEntry, LedgerEntryInput } from "./ledger";
 import { buildReport, detectRegression, reconciles } from "./report";
+import { makeSandbox } from "./test-sandbox";
 
-const LEDGER_PATH = path.join(process.cwd(), ".claude0", "ledger.jsonl");
+// Sandboxed: this file used to truncate the real repo's ledger via
+// process.cwd(), destroying the developer's savings history on every run.
+const SANDBOX = makeSandbox("m6");
+const LEDGER_PATH = path.join(SANDBOX, ".claude0", "ledger.jsonl");
 
 function seedRow(over: Partial<LedgerEntryInput>): LedgerEntryInput {
   return {
@@ -37,7 +41,7 @@ function main() {
   ];
   fs.writeFileSync(LEDGER_PATH, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
 
-  const entries = readLedger();
+  const entries = readLedger(SANDBOX);
   const report = buildReport(entries);
 
   const ok1 = reconciles(report, entries);

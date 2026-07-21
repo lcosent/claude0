@@ -2,10 +2,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { claude0Dir } from "./paths";
 
-export type ClaudeZeroMode = "turnkey" | "expert";
+export type claude0Mode = "turnkey" | "expert";
 
 export interface ModeConfig {
-  mode: ClaudeZeroMode;
+  mode: claude0Mode;
   upgraded_at: string | null;
 }
 

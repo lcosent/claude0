@@ -64,7 +64,29 @@ export function appendLedger(entry: LedgerEntryInput, repoRoot?: string): void {
   // Stamp the current schema version unless the caller set one explicitly, so
   // every written line is self-describing for future migrations.
   const stamped = { schema: LEDGER_SCHEMA_VERSION, ...entry };
-  fs.appendFileSync(ledgerFile, JSON.stringify(stamped) + "\n");
+  const line = JSON.stringify(stamped) + "\n";
+
+  // Parallel Bash tool calls mean concurrent hook processes writing this file.
+  // fs.appendFileSync opens with "a" per call; on Windows, Node emulates append
+  // as seek-to-end + write, which is NOT atomic, so concurrent writers can
+  // interleave or clobber lines. Opening O_APPEND explicitly and issuing ONE
+  // writeSync keeps a single line atomic (POSIX guarantees it under PIPE_BUF;
+  // Windows honors FILE_APPEND_DATA for the same effect).
+  let fd: number | undefined;
+  try {
+    fd = fs.openSync(ledgerFile, "a");
+    fs.writeSync(fd, Buffer.from(line, "utf8"));
+  } catch {
+    // Ledger writes are best-effort — never break the caller over telemetry.
+  } finally {
+    if (fd !== undefined) {
+      try {
+        fs.closeSync(fd);
+      } catch {
+        // ignore
+      }
+    }
+  }
 }
 
 export function readLedger(repoRoot?: string): LedgerEntry[] {
