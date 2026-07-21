@@ -4,7 +4,7 @@ import { Tier, Effort, effortForTier } from "./policy";
 
 // Real model calls run through the `claude` CLI in headless mode — on the
 // user's Claude Code subscription, NOT a paid API key. When claude is absent or
-// ZIPLINE_SIMULATE=1 is set, a deterministic offline stub is used so tests and
+// CLAUDE0_SIMULATE=1 is set, a deterministic offline stub is used so tests and
 // CI stay green with no subscription and no network.
 
 export interface ModelResponse {
@@ -23,7 +23,8 @@ const TIER_MODEL: Record<Tier, string> = {
 
 /** Is the real (subscription) path available and not force-disabled? */
 export function liveAvailable(): boolean {
-  if (process.env.ZIPLINE_SIMULATE === "1") return false;
+  // ZIPLINE_* retained as a deprecated alias (see budget.ts).
+  if (process.env.CLAUDE0_SIMULATE === "1" || process.env.ZIPLINE_SIMULATE === "1") return false;
   try {
     execFileSync("claude", ["--version"], { stdio: "ignore", timeout: 5000 });
     return true;

@@ -1,6 +1,6 @@
 # Turnkey vs Expert Mode
 
-ClaudeZero has two modes: **turnkey** (simple, managed) and **expert** (full control).
+claude0 has two modes: **turnkey** (simple, managed) and **expert** (full control).
 
 ---
 
@@ -46,7 +46,7 @@ design-synthesis: fable
 
 **Status output:**
 ```
-ClaudeZero Status
+claude0 Status
 ─────────────────────────────────
 ✓ Saving 41.8% on average          ← real, computed from the ledger
 ✓ 47 runs, 93.6% success rate
@@ -78,7 +78,7 @@ claude0 expert
 
 **Unlocked policy:**
 ```yaml
-# ClaudeZero routing policy (expert mode — edit freely)
+# claude0 routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 # Advanced: use tier@effort for reasoning overrides (e.g., opus@xhigh)
 
@@ -267,7 +267,7 @@ claude0 compile "task" tags # Preview compilations
 
 **Expert (unlocked):**
 ```yaml
-# ClaudeZero routing policy (expert mode — edit freely)
+# claude0 routing policy (expert mode — edit freely)
 # Maps step types to Anthropic model tiers: haiku/sonnet/opus/fable
 ```
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-# Contributing to ClaudeZero
+# Contributing to claude0
 
 Thank you for your interest in making claude0 better.
 

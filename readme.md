@@ -5,7 +5,7 @@
 **Cut Claude Code token usage — automatically**
 
 Every time you ask Claude Code something, it reads your entire `CLAUDE.md` — even the parts that don't matter, and every verbose command dumps its full output into the context.  
-**ClaudeZero sends only the relevant rules and compresses tool output before it reaches the model** — reversibly, so nothing is ever lost. Your actual savings are measured per run and logged to `.claude0/ledger.jsonl`; run `claude0 report` to see yours.
+**claude0 sends only the relevant rules and compresses tool output before it reaches the model** — reversibly, so nothing is ever lost. Your actual savings are measured per run and logged to `.claude0/ledger.jsonl`; run `claude0 report` to see yours.
 
 <br/>
 
@@ -32,7 +32,7 @@ cd your-project             # 2. Go to your project
 claude0 init                # 3. Set up once
 ```
 
-✨ **Done.** Keep using Claude Code exactly like before. ClaudeZero runs invisibly.
+✨ **Done.** Keep using Claude Code exactly like before. claude0 runs invisibly.
 
 ```bash
 claude0 status              # Check your savings anytime
@@ -42,7 +42,7 @@ claude0 status              # Check your savings anytime
 
 <div align="center">
 
-**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20claude0&url=https://github.com/lcosent/claude0)**
 
 </div>
 
@@ -75,7 +75,7 @@ Claude receives:
 
 ### ✅ With claude0
 
-ClaudeZero reads your prompt, figures out what you're doing, and sends only relevant rules.
+claude0 reads your prompt, figures out what you're doing, and sends only relevant rules.
 
 **Same prompt:** "fix the auth bug"
 
@@ -146,7 +146,7 @@ Claude receives:
 1,100 tokens   ← illustrative; your real numbers are in the ledger
 ```
 
-ClaudeZero looked at "add a login form" and skipped Git/commit rules. You never asked it to — it just knew. (Numbers above are illustrative — run `claude0 report` for your actual savings.)
+claude0 looked at "add a login form" and skipped Git/commit rules. You never asked it to — it just knew. (Numbers above are illustrative — run `claude0 report` for your actual savings.)
 
 ---
 
@@ -155,12 +155,28 @@ ClaudeZero looked at "add a login form" and skipped Git/commit rules. You never 
 ```bash
 claude0 init              # Set up in your project (migrates your CLAUDE.md)
 claude0 status            # See your savings
+claude0 report            # Detailed metrics from the ledger
 claude0 recall <id>       # Get the full original of a compressed tool output
+claude0 upgrade           # Register hooks added since this project was set up
 claude0 expert            # Unlock advanced features (optional)
+claude0 turnkey           # Go back to managed mode
 claude0 uninstall         # Remove cleanly (restores your CLAUDE.md)
 ```
 
-Expert mode unlocks: `doctor`, `learn`, `bloat`, `compile`, and policy editing.
+### Updating
+
+```bash
+npm install -g claude0@latest   # update the package
+claude0 upgrade                 # then, in each initialized project
+```
+
+Upgrading the package swaps the binary, but it cannot edit a project's
+`.claude/settings.json`. When a release adds a hook, existing projects keep
+running without it until `claude0 upgrade` registers it — `claude0 doctor`
+reports which hooks are missing.
+
+Expert mode surfaces `doctor`, `learn`, `bloat`, and `compile` in the help output
+and unlocks policy editing. The commands themselves run in either mode.
 
 ---
 
@@ -169,7 +185,7 @@ Expert mode unlocks: `doctor`, `learn`, `bloat`, `compile`, and policy editing.
 **At `init`** — your `CLAUDE.md` is split into tagged rules under `.claude0/rules/`, then replaced with a small stub (original backed up). Claude Code stops re-reading the full rule set on every prompt. Sections that can't be confidently tagged are marked `always` so they're never dropped — they just always load.
 
 **On every prompt** —
-1. **Analyze** — ClaudeZero reads your prompt and infers the intent (plus any `always` rules)
+1. **Analyze** — claude0 reads your prompt and infers the intent (plus any `always` rules)
 2. **Filter** — Only the matching rules are injected, not the whole file
 3. **Compress** — Verbose tool output (test runs, build logs) is shrunk before it reaches the model, keeping error/failure lines and stashing the full original for `claude0 recall`
 4. **Track** — Every operation logs real token counts to `.claude0/ledger.jsonl`
@@ -191,7 +207,7 @@ We welcome contributions! See [CONTRIBUTING.md](contributing.md) for guidelines.
 
 <div align="center">
 
-**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20ClaudeZero&url=https://github.com/lcosent/claude0)**
+**[⭐️ Star this repo](https://github.com/lcosent/claude0)** · **[Share on Twitter](https://twitter.com/intent/tweet?text=Cut%20Claude%20Code%20token%20usage%20automatically%20with%20claude0&url=https://github.com/lcosent/claude0)**
 
 **[Quickstart](quickstart.md)** · **[Issues](https://github.com/lcosent/claude0/issues)** · **[Discussions](https://github.com/lcosent/claude0/discussions)** · **[Contributing](contributing.md)**
 

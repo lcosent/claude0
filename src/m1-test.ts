@@ -1,5 +1,6 @@
 import { compile, fullContextBundle, tokenCount } from "./compiler";
 import { appendLedger } from "./ledger";
+import { makeSandbox, copyRealRules } from "./test-sandbox";
 
 interface StepCase {
   step: string;
@@ -22,7 +23,10 @@ const STEPS: StepCase[] = [
 ];
 
 function main() {
-  const repoRoot = process.cwd(); // M1 test runs from repo root with .claude0/
+  // Sandbox with a copy of the real rules: the measurement needs the actual
+  // rule corpus, but appending ledger rows must never touch the real ledger.
+  const repoRoot = makeSandbox("m1");
+  copyRealRules(repoRoot);
   const savingsRatios: number[] = [];
   let compiledPass = 0;
   let fullPass = 0;

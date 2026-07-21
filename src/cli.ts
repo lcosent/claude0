@@ -24,6 +24,14 @@ import {
   README,
 } from "./init-templates";
 import { migrateContent, renderRuleFile } from "./migrate";
+import { detectHookDrift, reconcileHooks } from "./hook-drift";
+import {
+  stampInit,
+  stampUpgrade,
+  readInstallVersion,
+  pendingMigrations,
+  packageVersion,
+} from "./install-version";
 import { recallOutput } from "./output-store";
 import { readMode, writeMode, upgradeToExpert, downgradeToTurnkey, isExpertMode } from "./mode";
 import { interceptFromStdin } from "./intercept";
@@ -46,9 +54,24 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
     ? path.join(targetDir, "rules")
     : rulesDir(targetDir);
 
-  if (fs.existsSync(claude0DirPath)) {
-    console.log(`Already initialized: ${claude0DirPath}`);
-    process.exit(0);
+  // An existing install used to make init exit immediately, which meant a
+  // partial or damaged install (deleted policy.yaml, missing ledger, crashed
+  // first run) could never be repaired — and `upgrade` only handles hooks.
+  // Repair what's missing instead, and never overwrite what's already there.
+  const repairing = fs.existsSync(claude0DirPath);
+  const repaired: string[] = [];
+
+  // findClaudeZeroRoot walks upward, so initializing inside an already-managed
+  // repo creates a nested install that silently shadows the parent for every
+  // hook invocation below this directory.
+  if (!repairing && !opts.global) {
+    const enclosing = findClaudeZeroRoot(path.dirname(targetDir));
+    if (enclosing) {
+      console.error(`Refusing to nest: ${enclosing} is already a claude0 project.`);
+      console.error(`A nested install would shadow it for everything under ${targetDir}.`);
+      console.error(`Run 'claude0 init' from ${enclosing}, or remove that install first.`);
+      process.exit(1);
+    }
   }
 
   const mode = opts.expert ? "expert" : "turnkey";
@@ -69,39 +92,68 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
       ? fs.readFileSync(claudeMdPath, "utf8")
       : "";
 
-  if (existingMd.trim()) {
-    // Back up the original BEFORE writing anything, then split into rules.
-    fs.writeFileSync(claudeMdBackupPath(targetDir), existingMd);
-    for (const rule of migrateContent(existingMd)) {
-      fs.writeFileSync(path.join(rulesDirPath, rule.file), renderRuleFile(rule));
-      migratedCount++;
+  // Migration runs only on a first init. On a repair the rules directory is the
+  // user's own edited content — re-splitting CLAUDE.md (already a stub) would
+  // overwrite it, and re-backing-up the stub would destroy the real backup.
+  const hasRules =
+    fs.existsSync(rulesDirPath) && fs.readdirSync(rulesDirPath).some((f) => f.endsWith(".md"));
+
+  if (!hasRules) {
+    if (existingMd.trim()) {
+      // Back up the original BEFORE writing anything, then split into rules.
+      fs.writeFileSync(claudeMdBackupPath(targetDir), existingMd);
+      for (const rule of migrateContent(existingMd)) {
+        fs.writeFileSync(path.join(rulesDirPath, rule.file), renderRuleFile(rule));
+        migratedCount++;
+      }
+      // Stub the file so Claude Code stops reading the full rule set every prompt.
+      fs.writeFileSync(claudeMdPath, CLAUDE_MD_STUB);
+    } else {
+      // Fresh project with no CLAUDE.md — seed starter rules the user can edit.
+      for (const [filename, content] of Object.entries(SAMPLE_RULES)) {
+        fs.writeFileSync(path.join(rulesDirPath, filename), content);
+      }
     }
-    // Stub the file so Claude Code stops reading the full rule set every prompt.
-    fs.writeFileSync(claudeMdPath, CLAUDE_MD_STUB);
-  } else {
-    // Fresh project with no CLAUDE.md — seed starter rules the user can edit.
-    for (const [filename, content] of Object.entries(SAMPLE_RULES)) {
-      fs.writeFileSync(path.join(rulesDirPath, filename), content);
-    }
+    if (repairing) repaired.push(".claude0/rules/");
   }
 
-  // Write mode-appropriate policy
+  // Each remaining artifact is created only if absent, so a repair restores what
+  // was deleted without discarding tuned policy, recorded history, or mode.
   const policyFile = opts.global
     ? path.join(targetDir, "policy.yaml")
     : policyPath(targetDir);
-  const policyContent = opts.expert ? EXPERT_POLICY : TURNKEY_POLICY;
-  fs.writeFileSync(policyFile, policyContent);
-
-  // Write mode config (project-level only)
-  if (!opts.global) {
-    writeMode(targetDir, { mode, upgraded_at: null });
+  if (!fs.existsSync(policyFile)) {
+    fs.writeFileSync(policyFile, opts.expert ? EXPERT_POLICY : TURNKEY_POLICY);
+    if (repairing) repaired.push(".claude0/policy.yaml");
   }
 
-  // Create empty ledger
+  if (!opts.global) {
+    const modeFile = path.join(claude0DirPath, "mode.json");
+    if (!fs.existsSync(modeFile)) {
+      writeMode(targetDir, { mode, upgraded_at: null });
+      if (repairing) repaired.push(".claude0/mode.json");
+    }
+    // Stamp the creating version so `upgrade` knows what it is upgrading from.
+    if (!readInstallVersion(targetDir)) {
+      stampInit(targetDir);
+      if (repairing) repaired.push(".claude0/version.json");
+    }
+  } else {
+    // Global installs get a mode file too — its absence made readMode silently
+    // fall back to turnkey, so `init --global --expert` was quietly ignored.
+    const globalMode = path.join(targetDir, "mode.json");
+    if (!fs.existsSync(globalMode)) {
+      fs.writeFileSync(globalMode, JSON.stringify({ mode, upgraded_at: null }, null, 2) + "\n");
+    }
+  }
+
   const ledgerFile = opts.global
     ? path.join(targetDir, "ledger.jsonl")
     : path.join(claude0DirPath, "ledger.jsonl");
-  fs.writeFileSync(ledgerFile, "");
+  if (!fs.existsSync(ledgerFile)) {
+    fs.writeFileSync(ledgerFile, "");
+    if (repairing) repaired.push(".claude0/ledger.jsonl");
+  }
 
   if (!opts.global) {
     // Configure Claude Code hook (project-level only)
@@ -110,22 +162,57 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
 
     fs.mkdirSync(claudeDir, { recursive: true });
 
-    let settings: any = {};
+    // Back up settings.json before touching it. Hooks are the user's own
+    // configuration; uninstall can only remove claude0's entries, so if we ever
+    // damage the rest there must be a copy to go back to.
     if (fs.existsSync(settingsFile)) {
-      try {
-        settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-      } catch {
-        // Malformed JSON; start fresh
-      }
+      fs.copyFileSync(settingsFile, path.join(claude0DirPath, "settings.json.backup"));
     }
 
-    settings.hooks = { ...settings.hooks, ...HOOK_CONFIG.hooks };
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+    // Append rather than spread. `{...settings.hooks, ...HOOK_CONFIG.hooks}`
+    // replaces the whole array for an event, so a user's own UserPromptSubmit or
+    // PostToolUse hook was silently destroyed by init and could never be
+    // restored by uninstall (which filters by command name).
+    reconcileHooks(targetDir);
 
-    // Write README
-    fs.writeFileSync(path.join(targetDir, "ZIPLINE_README.md"), README);
+    // .claude0/outputs/ holds the RAW stdout of every compressed Bash command —
+    // build logs, env dumps, anything a command printed, including secrets.
+    // Without this it is committable by default, which turns a token optimizer
+    // into a credential-leak vector. ledger.jsonl is machine-local too.
+    const gitignorePath = path.join(targetDir, ".gitignore");
+    const needed = [".claude0/outputs/", ".claude0/ledger.jsonl"];
+    let gitignore = fs.existsSync(gitignorePath)
+      ? fs.readFileSync(gitignorePath, "utf8")
+      : "";
+    const missing = needed.filter((entry) => !gitignore.split("\n").some((l) => l.trim() === entry));
+    if (missing.length > 0) {
+      if (gitignore && !gitignore.endsWith("\n")) gitignore += "\n";
+      gitignore += `\n# claude0: raw tool output may contain secrets — never commit\n${missing.join("\n")}\n`;
+      fs.writeFileSync(gitignorePath, gitignore);
+    }
 
-    console.log(`ClaudeZero initialized in ${targetDir} (${mode} mode)`);
+    const guidePath = path.join(targetDir, "CLAUDE0.md");
+    if (!fs.existsSync(guidePath)) {
+      fs.writeFileSync(guidePath, README);
+      if (repairing) repaired.push("CLAUDE0.md");
+    }
+
+    if (repairing) {
+      const hookResult = detectHookDrift(targetDir);
+      if (repaired.length === 0 && hookResult.missing.length === 0) {
+        console.log(`Already initialized: ${claude0DirPath} — nothing to repair.`);
+      } else {
+        console.log(`Repaired existing install at ${claude0DirPath}:`);
+        for (const item of repaired) console.log(`  restored  ${item}`);
+        if (hookResult.missing.length === 0 && repaired.length > 0) {
+          console.log(`  hooks     already registered`);
+        }
+      }
+      console.log(`\nExisting rules, policy, and ledger were left untouched.`);
+      return;
+    }
+
+    console.log(`claude0 initialized in ${targetDir} (${mode} mode)`);
     console.log(`\nCreated:`);
     if (migratedCount > 0) {
       console.log(`  .claude0/rules/        (${migratedCount} rules migrated from CLAUDE.md)`);
@@ -138,9 +225,9 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
     console.log(`  .claude0/mode.json     (${mode} mode)`);
     console.log(`  .claude0/ledger.jsonl  (empty log)`);
     console.log(`  .claude/settings.json  (hook configured)`);
-    console.log(`  ZIPLINE_README.md      (usage guide)`);
+    console.log(`  CLAUDE0.md             (usage guide)`);
     if (mode === "turnkey") {
-      console.log(`\nNext: Just use Claude Code normally. ClaudeZero works transparently.`);
+      console.log(`\nNext: Just use Claude Code normally. claude0 works transparently.`);
       console.log(`Run 'claude0 status' to see savings, 'claude0 expert' for advanced features.`);
     } else {
       console.log(`\nExpert mode enabled — full control over routing policy and advanced commands.`);
@@ -157,9 +244,11 @@ function initCommand(opts: { global?: boolean; expert?: boolean } = {}) {
 }
 
 function reportCommand(opts: { global?: boolean } = {}) {
-  const root = opts.global
-    ? path.join(process.env.HOME || "~", ".claude0")
-    : requireClaudeZeroRoot();
+  // readLedger takes a REPO root and appends `.claude0/` itself. Passing
+  // ~/.claude0 here resolved to ~/.claude0/.claude0/ledger.jsonl — a path
+  // `init --global` never writes, so `report --global` always reported an
+  // empty ledger. The global install's repo root is $HOME.
+  const root = opts.global ? process.env.HOME || "~" : requireClaudeZeroRoot();
 
   const entries = readLedger(root);
   if (entries.length === 0) {
@@ -175,7 +264,7 @@ function reportCommand(opts: { global?: boolean } = {}) {
         100
       : 0;
 
-  console.log(`ClaudeZero Report (${opts.global ? "global" : root})`);
+  console.log(`claude0 Report (${opts.global ? "global" : root})`);
   console.log(`${"=".repeat(60)}`);
   console.log(`Total runs:       ${report.totalRuns}`);
   console.log(
@@ -185,7 +274,7 @@ function reportCommand(opts: { global?: boolean } = {}) {
   console.log(`Stuck:            ${report.stuckCount}`);
   if (report.budgetHalts > 0)
     console.log(`Budget halts:     ${report.budgetHalts}`);
-  console.log(`Token savings:    ${totalSavings.toFixed(1)}%`);
+  console.log(`Token savings:    ${totalSavings.toFixed(1)}%  (estimate: cl100k proxy, see note)`);
   console.log(
     `  Baseline:       ${report.totalBaselineTokens.toLocaleString()}`
   );
@@ -193,6 +282,10 @@ function reportCommand(opts: { global?: boolean } = {}) {
   console.log(`Tier mix:         ${JSON.stringify(report.tierMix)}`);
   if (Object.keys(report.effortMix).length > 0)
     console.log(`Effort mix:       ${JSON.stringify(report.effortMix)}`);
+  console.log(
+    `\nNote: token counts use gpt-tokenizer (cl100k), not Claude's tokenizer.\n` +
+      `The ratio is a close proxy; absolute counts will differ from Anthropic billing.`
+  );
 
   console.log(`\nSavings by milestone:`);
   for (const [milestone, series] of Object.entries(report.savingsByMilestone)) {
@@ -221,7 +314,7 @@ function compileCommand(objective: string, tags: string[]) {
   console.log(`Tags: [${tags.join(", ")}]`);
   console.log(`\nBaseline tokens:  ${baselineTokens}`);
   console.log(`Compiled tokens:  ${compiledTokens}`);
-  console.log(`Savings:          ${savings.toFixed(1)}%`);
+  console.log(`Savings:          ${savings.toFixed(1)}%  (estimate: cl100k proxy)`);
   console.log(`\nRules included:   ${compiledBundle.rules_included.join(", ")}`);
   console.log(`Rules excluded:   ${compiledBundle.rules_excluded.join(", ")}`);
 }
@@ -234,7 +327,7 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
   const claude0DirPath = opts.global ? targetDir : claude0Dir(targetDir);
 
   if (!fs.existsSync(claude0DirPath)) {
-    console.error(`ClaudeZero not initialized in ${targetDir}`);
+    console.error(`claude0 not initialized in ${targetDir}`);
     process.exit(1);
   }
 
@@ -255,11 +348,47 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
   // .claude0/ (which holds the backup). Reversibility is the whole point of the
   // backup — uninstall must undo the stubbing init did.
   let restoredClaudeMd = false;
+  let reconstituted = false;
+  let orphanedPath = "";
   if (!opts.global) {
     const backup = claudeMdBackupPath(targetDir);
+    const claudeMdPath = path.join(targetDir, "CLAUDE.md");
+    const current = fs.existsSync(claudeMdPath) ? fs.readFileSync(claudeMdPath, "utf8") : "";
+    // "Untouched since init" means the file is still claude0's stub. Anything
+    // else is the user's own writing and must not be silently overwritten.
+    const isStub = current.trim() === CLAUDE_MD_STUB.trim();
+
     if (fs.existsSync(backup)) {
-      fs.writeFileSync(path.join(targetDir, "CLAUDE.md"), fs.readFileSync(backup));
+      if (current && !isStub) {
+        // The user edited CLAUDE.md after init. Restoring the backup would
+        // silently discard that work, so keep it beside the restored file.
+        orphanedPath = path.join(targetDir, "CLAUDE.md.claude0-orphaned");
+        fs.writeFileSync(orphanedPath, current);
+      }
+      fs.writeFileSync(claudeMdPath, fs.readFileSync(backup));
       restoredClaudeMd = true;
+    } else if (isStub || !current) {
+      // No backup, and CLAUDE.md is only claude0's stub: every rule the user
+      // owns lives in .claude0/rules/, which the rmSync below is about to
+      // delete. Rebuild a CLAUDE.md from them rather than destroying the lot.
+      const rules = rulesDir(targetDir);
+      const files = fs.existsSync(rules)
+        ? fs.readdirSync(rules).filter((f) => f.endsWith(".md")).sort()
+        : [];
+      if (files.length > 0) {
+        const body = files
+          .map((f) => fs.readFileSync(path.join(rules, f), "utf8").trim())
+          .join("\n\n");
+        fs.writeFileSync(
+          claudeMdPath,
+          `# Project Rules\n\n` +
+            `<!-- Reconstituted by 'claude0 uninstall' from .claude0/rules/.\n` +
+            `     The original CLAUDE.md backup was missing, so these rules were\n` +
+            `     merged back rather than deleted. Frontmatter tags are retained. -->\n\n` +
+            `${body}\n`
+        );
+        reconstituted = true;
+      }
     }
   }
 
@@ -267,6 +396,12 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
   fs.rmSync(claude0DirPath, { recursive: true, force: true });
   console.log(`Removed: ${claude0DirPath}`);
   if (restoredClaudeMd) console.log(`Restored: CLAUDE.md (from backup)`);
+  if (orphanedPath) {
+    console.log(`Kept:     ${path.basename(orphanedPath)} (your post-init edits — not discarded)`);
+  }
+  if (reconstituted) {
+    console.log(`Rebuilt:  CLAUDE.md from .claude0/rules/ (no backup existed — rules were not lost)`);
+  }
 
   if (!opts.global) {
     // Remove hook from .claude/settings.json
@@ -308,15 +443,20 @@ function uninstallCommand(opts: { global?: boolean; force?: boolean } = {}) {
       }
     }
 
-    // Remove ZIPLINE_README.md if it exists
-    const readmePath = path.join(targetDir, "ZIPLINE_README.md");
+    // Remove the generated usage guide. ZIPLINE_README.md is the pre-rename
+    // name — still cleaned up so upgrading installs do not leave it behind.
+    for (const stale of ["ZIPLINE_README.md"]) {
+      const p = path.join(targetDir, stale);
+      if (fs.existsSync(p)) fs.rmSync(p, { force: true });
+    }
+    const readmePath = path.join(targetDir, "CLAUDE0.md");
     if (fs.existsSync(readmePath)) {
       fs.unlinkSync(readmePath);
       console.log(`Removed: ${readmePath}`);
     }
   }
 
-  console.log(`\nClaudeZero uninstalled from ${opts.global ? "global" : targetDir}`);
+  console.log(`\nclaude0 uninstalled from ${opts.global ? "global" : targetDir}`);
 }
 
 function readStdin(): Promise<string> {
@@ -335,8 +475,12 @@ function readStdin(): Promise<string> {
 }
 
 function interceptCommand() {
-  // interceptFromStdin owns its own process.exit (never throws to the prompt).
-  void interceptFromStdin(readStdin);
+  // interceptFromStdin owns its own process.exit for expected failures, but
+  // main() is synchronous — its try/catch has already returned by the time this
+  // promise settles, so an unexpected rejection would become an unhandled
+  // rejection: stack trace on stderr, exit 1, inside the user's prompt path.
+  // This catch is what actually makes the hook fail OPEN.
+  interceptFromStdin(readStdin).catch(() => process.exit(0));
 }
 
 function statusCommand() {
@@ -357,7 +501,7 @@ function statusCommand() {
       : 0;
   const passRate = ((report.passCount / report.totalRuns) * 100).toFixed(1);
 
-  console.log("ClaudeZero Status");
+  console.log("claude0 Status");
   console.log("─".repeat(33));
   console.log(`✓ Saving ${totalSavings.toFixed(1)}% on average`);
   console.log(`✓ ${report.totalRuns} runs, ${passRate}% success rate`);
@@ -448,11 +592,63 @@ function turnkeyCommand() {
   console.log("Run 'claude0 status' to check how it's working.");
 }
 
+/**
+ * Reconciles an existing install with the current version's hook config.
+ *
+ * Upgrading the npm package swaps the binary but cannot touch .claude/settings.json,
+ * and `init` refuses to run on an existing .claude0/. Without this, a hook added
+ * in a later release (compress-output was) never reaches anyone who installed
+ * earlier. Deliberately narrow: hooks only — rules, policy, ledger, and the
+ * CLAUDE.md backup are left exactly as they are.
+ */
+function upgradeCommand() {
+  const root = requireClaudeZeroRoot();
+  const stamped = readInstallVersion(root);
+  const from = stamped?.version ?? "pre-1.1 (unstamped)";
+
+  const result = reconcileHooks(root);
+  if (result.unreadable) {
+    console.error(`Error: ${claudeSettingsPath(root)} is not valid JSON.`);
+    console.error("Fix or remove it, then run 'claude0 upgrade' again.");
+    process.exit(1);
+  }
+
+  // State migrations run before the stamp is rewritten, so a crash mid-chain
+  // leaves the old version recorded and the next run retries.
+  const migrations = pendingMigrations(root);
+  for (const m of migrations) {
+    try {
+      m.run(root);
+      console.log(`✓ Migrated: ${m.describe}`);
+    } catch (err) {
+      console.error(`Error during migration "${m.describe}": ${err}`);
+      console.error("Install left at the previous version; rerun 'claude0 upgrade' after fixing.");
+      process.exit(1);
+    }
+  }
+
+  stampUpgrade(root);
+
+  if (result.added.length === 0 && migrations.length === 0) {
+    console.log(`✓ Already up to date (v${packageVersion()}) — all hooks registered.`);
+    return;
+  }
+
+  if (result.added.length > 0) {
+    console.log(`✓ Registered ${result.added.length} missing hook${result.added.length === 1 ? "" : "s"}:`);
+    for (const hook of result.added) {
+      console.log(`  • ${hook.event} — ${hook.label} (${hook.command})`);
+    }
+  }
+  console.log("");
+  console.log(`Upgraded ${from} → v${packageVersion()}. Takes effect on your next Claude Code prompt.`);
+}
+
 function doctorCommand() {
   const root = requireClaudeZeroRoot();
   const env = detectRepoEnv(root);
 
-  console.log("ClaudeZero Integrations");
+  console.log("claude0 Integrations");
   console.log("─".repeat(52));
   for (const cap of CAPABILITIES) {
     const a = resolveAvailability(cap, root, env);
@@ -484,6 +680,42 @@ function doctorCommand() {
     console.log("Capability net delta: no capability runs logged yet.");
   }
 
+  // Hook drift. `init` exits early on an existing .claude0/, so an install made
+  // before a hook was added never receives it — the feature is silently absent
+  // rather than broken. Surfacing it here is the only way a user finds out.
+  const drift = detectHookDrift(root);
+  const installed = readInstallVersion(root);
+  console.log("");
+  console.log("Install");
+  console.log("─".repeat(52));
+  if (!installed) {
+    console.log(`○ version          unstamped (created before version tracking)`);
+    console.log(`                   run 'claude0 upgrade' to stamp it`);
+  } else if (installed.version !== packageVersion()) {
+    console.log(`✗ version          state v${installed.version}, binary v${packageVersion()}`);
+    console.log(`                   run 'claude0 upgrade' to migrate`);
+  } else {
+    console.log(`✓ version          v${installed.version}`);
+  }
+
+  console.log("");
+  console.log("Hooks");
+  console.log("─".repeat(52));
+  if (drift.unreadable) {
+    console.log("✗ .claude/settings.json is not valid JSON — cannot verify hooks");
+  } else {
+    for (const hook of drift.present) {
+      console.log(`✓ ${hook.event.padEnd(16)} ${hook.label} active`);
+    }
+    for (const hook of drift.missing) {
+      console.log(`✗ ${hook.event.padEnd(16)} ${hook.label} NOT registered`);
+    }
+    if (drift.missing.length > 0) {
+      console.log("");
+      console.log(`Run 'claude0 upgrade' to register ${drift.missing.length === 1 ? "it" : "them"}.`);
+    }
+  }
+
   // Optional orchestration layer (gstack). Detected, never invoked — claude0's
   // job is token accounting; gstack owns multi-agent orchestration leaves.
   // Honest degradation: if it isn't installed, we say so and nothing breaks.
@@ -501,6 +733,17 @@ function doctorCommand() {
 
 function main() {
   const [, , command, ...args] = process.argv;
+
+  // --global was accepted silently by every command but implemented by only
+  // three. The rest called requireClaudeZeroRoot(), which walks upward — so from
+  // any directory under $HOME they resolved the GLOBAL install as if it were a
+  // project, operating on shared state with no indication. Reject explicitly.
+  const GLOBAL_AWARE = ["init", "report", "uninstall"];
+  if (args.includes("--global") && command && !GLOBAL_AWARE.includes(command)) {
+    console.error(`'claude0 ${command}' does not support --global.`);
+    console.error(`Global-aware commands: ${GLOBAL_AWARE.join(", ")}.`);
+    process.exit(1);
+  }
 
   try {
     switch (command) {
@@ -549,6 +792,10 @@ function main() {
         doctorCommand();
         break;
 
+      case "upgrade":
+        upgradeCommand();
+        break;
+
       case "policy": {
         const root = requireClaudeZeroRoot();
         const sub = args[0];
@@ -591,7 +838,9 @@ function main() {
         break;
 
       case "compress-output":
-        void compressOutputFromStdin(readStdin);
+        // Same fail-open contract as intercept above: never let a rejection
+        // reach the tool pipeline as an unhandled error.
+        compressOutputFromStdin(readStdin).catch(() => process.exit(0));
         break;
 
       case "recall": {
@@ -636,7 +885,7 @@ function main() {
 
         if (isExpert) {
           // Expert mode: show all commands
-          console.log(`ClaudeZero — deterministic orchestration spine for Claude Code
+          console.log(`claude0 — deterministic orchestration spine for Claude Code
 
 Usage:
   claude0 init [--expert] [--global]     Initialize .claude0/ in current dir (or ~/.claude0/)
@@ -644,6 +893,7 @@ Usage:
   claude0 report [--global]              Detailed token savings and system metrics
   claude0 compile "goal" tags            Compile context bundle for a step
   claude0 doctor                         Show integrations stack + per-repo availability
+  claude0 upgrade                        Register hooks added since this project was initialized
   claude0 policy <pull|push>             Sync routing policy with the central store (repo overrides win)
   claude0 learn [--apply]                Propose rule changes from ledger evidence
   claude0 bloat [--fix] [--dry-run]      Detect context bloat and optionally auto-fix
@@ -662,19 +912,20 @@ After init, claude0 runs transparently — just use Claude Code normally.
 `);
         } else {
           // Turnkey mode: show only essential commands
-          console.log(`ClaudeZero — cut Claude Code token usage, automatically
+          console.log(`claude0 — cut Claude Code token usage, automatically
 
 Usage:
   claude0 init [--expert]         Set up claude0 in your project
   claude0 status                  Check how much you're saving
   claude0 expert                  Unlock advanced features
+  claude0 upgrade                 Sync hooks after updating the claude0 package
   claude0 uninstall [--force]     Remove claude0 (restores your CLAUDE.md)
 
 Examples:
   claude0 init                    # One command, fully set up
   claude0 status                  # See your savings
 
-After init, just use Claude Code normally. ClaudeZero works in the background.
+After init, just use Claude Code normally. claude0 works in the background.
 
 Want more control? Run 'claude0 expert' for advanced commands.
 `);

@@ -2,7 +2,7 @@
 //
 // A capability replicates an efficiency tool natively in TypeScript (always-on
 // baseline) and optionally uses a real external tool as an accelerator when
-// detected. ClaudeZero selects capabilities per step automatically — the user
+// detected. claude0 selects capabilities per step automatically — the user
 // never picks one. See DESIGN.md and the M8 plan.
 
 /**

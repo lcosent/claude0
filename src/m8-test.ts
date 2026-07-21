@@ -1,6 +1,7 @@
 import { inferTags, renderContext, runIntercept } from "./intercept";
 import { compile } from "./compiler";
 import { readLedger } from "./ledger";
+import { makeSandbox, copyRealRules } from "./test-sandbox";
 import { encode } from "gpt-tokenizer";
 import {
   compressNative,
@@ -19,7 +20,14 @@ import { CapabilityResult, RepoEnv } from "./integrations/types";
 // This is the slice that removes the outside-voice "optimizes nothing" critique.
 
 function main() {
-  const repoRoot = process.cwd(); // run from repo root with .claude0/
+  // Sandbox with a copy of the real rules — see m1-test for rationale. Ledger
+  // writes and rule compilation happen here so the real ledger is never touched.
+  const repoRoot = makeSandbox("m8");
+  copyRealRules(repoRoot);
+  // The symbol-query and repo-env checks are READ-ONLY and genuinely need this
+  // repo: they resolve a real TS type out of src/compiler.ts and assert that a
+  // TS repo is detected. Pointing them at the sandbox would test nothing.
+  const realRepo = process.cwd();
   let pass = 0;
   let fail = 0;
   const check = (name: string, ok: boolean, detail = "") => {
@@ -99,7 +107,7 @@ function main() {
 
   // ---- Integrations capability gates ----------------------------------------
 
-  const env = detectRepoEnv(repoRoot);
+  const env = detectRepoEnv(realRepo);
 
   // 7. output-compress native ≥40% reduction on a representative noisy build/
   //    install log (the real target: verbose tool output with progress noise,
@@ -153,7 +161,7 @@ function main() {
   );
 
   // 8. symbol-query returns a real type via TS Language Service (this IS a TS repo).
-  const ans = querySymbol({ file: "src/compiler.ts", symbol: "tokenCount" }, repoRoot);
+  const ans = querySymbol({ file: "src/compiler.ts", symbol: "tokenCount" }, realRepo);
   check(
     "symbol-query: returns a type without reading the whole file",
     ans.found && ans.kind === "type" && !!ans.type && ans.type.includes("Bundle"),
@@ -169,7 +177,7 @@ function main() {
     !symCap.some((c) => c.name === "symbol-query"),
     `selected: [${symCap.map((c) => c.name).join(",")}]`
   );
-  const symRun = runCapability("symbol-query", '{"file":"x.ts","symbol":"y"}', repoRoot, fakePy);
+  const symRun = runCapability("symbol-query", '{"file":"x.ts","symbol":"y"}', realRepo, fakePy);
   check("symbol-query: passthrough (no output) when inactive", symRun.output.length >= 0 && symRun.tokensAfter === 0);
 
   // 10. decision-log is net-delta exempt (delta N/A, not a number).

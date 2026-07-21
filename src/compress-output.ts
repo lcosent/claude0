@@ -42,6 +42,20 @@ export interface CompressOutcome {
   tokens_after: number;
 }
 
+/**
+ * Below this many tokens, compression cannot pay for its own recall banner.
+ * Measured: the banner is ~39 tokens, so a 3-token result became ~42.
+ */
+export const COMPRESS_MIN_TOKENS = 400;
+
+/** The recall handle appended to every compressed view. */
+export function renderBanner(before: number, after: number, id: string): string {
+  return (
+    `\n\n[claude0: output compressed ${before}→${after} tokens. ` +
+    `Full original preserved — run \`claude0 recall ${id}\` if you need it.]`
+  );
+}
+
 export function compressToolOutput(input: ToolResultInput): CompressOutcome {
   const original = extractOutput(input);
   const compressed = original ? compressNative(original) : "";
@@ -65,17 +79,71 @@ export async function compressOutputFromStdin(readStdin: () => Promise<string>):
 
   let input: ToolResultInput;
   try {
-    input = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // `null`, numbers and arrays are all valid JSON that would make the property
+    // accesses below throw. Treat anything but a plain object as unusable.
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      process.exit(0);
+    }
+    input = parsed;
   } catch {
     process.exit(0);
   }
   if (input.tool_name && input.tool_name !== "Bash") process.exit(0);
 
-  const outcome = compressToolOutput(input);
+  // compressToolOutput runs the tokenizer and the native compressor over
+  // arbitrary tool output; a throw here must degrade to "emit nothing" rather
+  // than surface a stack trace into the user's session.
+  let outcome: CompressOutcome;
+  try {
+    outcome = compressToolOutput(input);
+  } catch {
+    process.exit(0);
+  }
 
-  // Log the real delta when run inside a claude0 repo.
   const root = findClaudeZeroRoot(input.cwd ?? process.cwd());
-  if (root && outcome.tokens_before > 0) {
+  const origResp =
+    input.tool_response && typeof input.tool_response === "object"
+      ? input.tool_response
+      : {};
+
+  // Below the floor there is nothing worth compressing: the recall banner alone
+  // costs ~39 tokens, so rewriting a short result made it several times LARGER
+  // while also writing a stash file to disk. Images are passed through for the
+  // same reason — the payload isn't line-oriented text.
+  if (
+    !outcome.original ||
+    outcome.tokens_before < COMPRESS_MIN_TOKENS ||
+    (origResp as ToolResponse).isImage
+  ) {
+    process.exit(0);
+  }
+
+  // Build the exact string that will be emitted BEFORE deciding to emit it.
+  // Measuring outcome.compressed alone overstated savings by the banner's cost
+  // and — on salience-dense output, where many short elision markers each cost
+  // more than the lines they replace — could hide a net EXPANSION.
+  let stdout = outcome.compressed;
+  let recallId: string | null = null;
+  if (root) {
+    try {
+      recallId = stashOutput(outcome.original, root);
+    } catch {
+      // stash is best-effort; fall through and emit without a recall handle
+    }
+  }
+  if (recallId) {
+    stdout += renderBanner(outcome.tokens_before, encode(outcome.compressed).length, recallId);
+  }
+  const tokensEmitted = encode(stdout).length;
+
+  // The guarantee: claude0 never makes the model's view bigger. If compression
+  // didn't actually pay for itself, pass the original through untouched.
+  const worthIt = tokensEmitted < outcome.tokens_before;
+
+  // Log what really happened, including the skips — a compressor that silently
+  // declines is a fact the ledger should show, not hide.
+  if (root) {
     try {
       appendLedger(
         {
@@ -84,19 +152,20 @@ export async function compressOutputFromStdin(readStdin: () => Promise<string>):
           step: "post-tool-use",
           attempt: 1,
           tier: "n/a",
-          tokens_in: outcome.tokens_after,
+          tokens_in: worthIt ? tokensEmitted : outcome.tokens_before,
           tokens_out: 0,
           baseline_tokens: outcome.tokens_before,
           pass: true,
-          metric:
-            outcome.tokens_before > 0
-              ? (outcome.tokens_before - outcome.tokens_after) / outcome.tokens_before
-              : 0,
+          metric: worthIt
+            ? (outcome.tokens_before - tokensEmitted) / outcome.tokens_before
+            : 0,
           outcome: "PASS",
           retries: 0,
           rules_included: [],
           rules_excluded: [],
-          note: `compress ${outcome.tokens_before}->${outcome.tokens_after}`,
+          note: worthIt
+            ? `compress ${outcome.tokens_before}->${tokensEmitted} (emitted, banner included)`
+            : `skipped: no net benefit (${outcome.tokens_before}->${tokensEmitted})`,
         },
         root
       );
@@ -107,27 +176,7 @@ export async function compressOutputFromStdin(readStdin: () => Promise<string>):
 
   // Replace what Claude sees with the compressed stdout (side effects already
   // happened — this only shrinks the model's view). Preserve stderr as-is.
-  if (outcome.original && outcome.compressed !== outcome.original) {
-    const origResp =
-      input.tool_response && typeof input.tool_response === "object"
-        ? input.tool_response
-        : {};
-
-    // Stash the full original and tell the model how to get it back. Elision is
-    // salience-aware but never certain to keep everything the model wants, so we
-    // make it reversible: the compressed view always carries a recall handle.
-    let stdout = outcome.compressed;
-    if (root) {
-      try {
-        const id = stashOutput(outcome.original, root);
-        stdout +=
-          `\n\n[claude0: output compressed ${outcome.tokens_before}→${outcome.tokens_after} tokens. ` +
-          `Full original preserved — run \`claude0 recall ${id}\` if you need it.]`;
-      } catch {
-        // stash is best-effort; still emit the compressed view without a handle
-      }
-    }
-
+  if (worthIt && outcome.compressed !== outcome.original) {
     const envelope = {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",

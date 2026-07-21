@@ -4,11 +4,11 @@ import { encode } from "gpt-tokenizer";
 // M10 — real LLM calls via the claude CLI subscription, with a deterministic
 // offline stub. Deterministic checks force simulate mode so they're reproducible
 // and need no subscription/network (CI stays green). M15 adds an OPT-IN live gate
-// (ZIPLINE_LIVE=1) that makes one real subscription call to validate full
+// (CLAUDE0_LIVE=1) that makes one real subscription call to validate full
 // execution — skipped (not failed) offline or without the flag.
 
 // Capture the live opt-in BEFORE we force simulate for the deterministic block.
-const LIVE_REQUESTED = process.env.ZIPLINE_LIVE === "1";
+const LIVE_REQUESTED = process.env.CLAUDE0_LIVE === "1" || process.env.ZIPLINE_LIVE === "1";
 
 process.env.ZIPLINE_SIMULATE = "1";
 

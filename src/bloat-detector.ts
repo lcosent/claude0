@@ -285,7 +285,7 @@ function effortRank(effort?: string): number {
 // CLI + hook entrypoint: run detection and emit a human-readable report.
 export function printBloatReport(repoRoot: string): void {
   const report = detectBloat(repoRoot);
-  console.log(`ClaudeZero Bloat Report (${report.timestamp})`);
+  console.log(`claude0 Bloat Report (${report.timestamp})`);
   console.log(`Severity: ${report.severity.toUpperCase()}\n`);
 
   console.log("STRUCTURAL BLOAT");

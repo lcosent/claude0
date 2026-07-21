@@ -9,14 +9,16 @@ export function findClaudeZeroRoot(startDir = process.cwd()): string | null {
   let dir = path.resolve(startDir);
   const root = path.parse(dir).root;
 
-  while (dir !== root) {
+  // do/while, not while: the original loop exited BEFORE testing the filesystem
+  // root, so a project at `/` or `C:\` was never detected.
+  for (;;) {
     const candidate = path.join(dir, ".claude0");
     if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
       return dir;
     }
+    if (dir === root) return null;
     dir = path.dirname(dir);
   }
-  return null;
 }
 
 /**
@@ -27,6 +29,16 @@ export function requireClaudeZeroRoot(): string {
   if (!root) {
     throw new Error(
       "Not a claude0 repository. Run 'claude0 init' in your project root."
+    );
+  }
+  // Walking upward from a directory under $HOME reaches ~/.claude0 — the GLOBAL
+  // install — and returns $HOME as though it were a project. Commands would then
+  // read and write shared global state believing it was project-local. Say so.
+  const home = process.env.HOME;
+  if (home && path.resolve(root) === path.resolve(home)) {
+    console.warn(
+      `claude0: no project install found; using the GLOBAL install at ${path.join(home, ".claude0")}.\n` +
+        `         Run 'claude0 init' inside your project to keep its rules and ledger separate.`
     );
   }
   return root;

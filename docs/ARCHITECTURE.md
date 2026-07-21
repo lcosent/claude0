@@ -1,4 +1,4 @@
-# ClaudeZero Architecture
+# claude0 Architecture
 
 How the pieces fit: the five-component spine, the integrations layer, and the
 per-repo state directory. All diagrams are Mermaid (GitHub renders them natively).
@@ -72,7 +72,7 @@ every prompt, so nothing is silently dropped. The original is backed up and
 restored on `uninstall`.
 
 When Claude Code submits a prompt, the `UserPromptSubmit` hook calls
-`claude0 intercept`. ClaudeZero compiles minimal context (the matched rules plus
+`claude0 intercept`. claude0 compiles minimal context (the matched rules plus
 any `always` rules), injects it back, and logs the real input-side token cost. A
 non-claude0 repo or any failure exits cleanly without disturbing the prompt.
 
