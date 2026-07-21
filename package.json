@@ -12,7 +12,7 @@
     "./cli": "./dist/cli.js"
   },
   "bin": {
-    "claude0": "./dist/cli.js"
+    "claude0": "dist/cli.js"
   },
   "repository": {
     "type": "git",
